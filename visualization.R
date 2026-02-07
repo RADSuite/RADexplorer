@@ -46,6 +46,7 @@ make_msa_plotly <- function(taxon, varRegions,
     ) %>%
     filter(!is.na(sequence) & sequence != "")
   
+  
   #####################################################################################
   
   # this designs the stacked tile setup, calculates y coordinates based on number of copies
@@ -68,6 +69,7 @@ make_msa_plotly <- function(taxon, varRegions,
       y_lab = (start + end) / 2
     )
   
+  
   RADqtiles <- RADqlonger %>%
     mutate(
       x_one   = 1,
@@ -84,7 +86,7 @@ make_msa_plotly <- function(taxon, varRegions,
   #####################################################################################
   
   # map (region, sequence) -> seq_id from the RADx occurrences file
-  # this is what we will use to color the tiles
+  # this is what we use to color the tiles
   seq_map <- RADx_occ %>%
     transmute(
       variable_region_clean = variable_region,
@@ -105,6 +107,21 @@ make_msa_plotly <- function(taxon, varRegions,
       seq_id_local = factor(dense_rank(seq_id))
     ) %>%
     ungroup()
+  
+  View(RADqtiles)
+  
+  # order the gene copies so that like colors are grouped together
+  RADqtiles <- RADqtiles %>%
+    group_by(species, variable_region_clean) %>%
+    add_count(sequence, name = "seq_n") %>%
+    arrange(desc(seq_n), sequence, copy_num, .by_group = TRUE) %>%
+    mutate(
+      copy_num = row_number(),
+      start = as.numeric(start),
+      y = start + as.numeric(copy_num) - 1
+    ) %>%
+    ungroup() %>%
+    select(-seq_n)
   
   #####################################################################################
   
@@ -141,6 +158,7 @@ make_msa_plotly <- function(taxon, varRegions,
       trans = "reverse",
       expand = expansion(mult = c(0.02, 0.02))
     ) +
+    # the geom_segments add the bracket for each species
     geom_segment(
       data = brackets_one,
       aes(x = x, xend = x, y = ymin, yend = ymax),
