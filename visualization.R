@@ -81,7 +81,7 @@ make_msa_plotly <- function(taxon, varRegions,
     )
   
   # y axis labels - show species name only once per group of gene copies
-  y_breaks <- copies_tbl %>% select(species, y_lab)
+  y_breaks <- copies_tbl %>% select(species, y_lab, n_copies)
   
   #####################################################################################
   
@@ -108,7 +108,7 @@ make_msa_plotly <- function(taxon, varRegions,
     ) %>%
     ungroup()
   
-  View(RADqtiles)
+  #View(RADqtiles)
   
   # order the gene copies so that like colors are grouped together
   RADqtiles <- RADqtiles %>%
@@ -146,6 +146,8 @@ make_msa_plotly <- function(taxon, varRegions,
   
   #####################################################################################
   
+  View(y_breaks)
+  
   # tile plot of selected variable regions by species.
   # segments are the bracket on the leftmost variable region to show species 
   p_msa <- ggplot(RADqtiles, aes(x = x_one, y = y)) +
@@ -154,7 +156,7 @@ make_msa_plotly <- function(taxon, varRegions,
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
-      labels = y_breaks$species,
+      labels = paste(y_breaks$species, "\n", y_breaks$n_copies, " 16S gene copies"),
       trans = "reverse",
       expand = expansion(mult = c(0.02, 0.02))
     ) +
