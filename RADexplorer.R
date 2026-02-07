@@ -4,7 +4,7 @@ library(plotly)
 source("visualization.R")
 
 ui = page_sidebar(
-  title = "RAD Explorer",
+  title = "RADexplorer",
   sidebar = sidebar(
     title = "Navigate",
     textInput(

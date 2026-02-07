@@ -182,7 +182,8 @@ make_msa_plotly <- function(taxon, varRegions,
     theme(
       axis.text.x = element_text(angle = 90),
       legend.position = "none",
-      axis.text.y = ggtext::element_markdown()
+      axis.text.y = ggtext::element_markdown(),
+      strip.text = element_text(size = 12)
     )
   
   
