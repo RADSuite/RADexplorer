@@ -3,6 +3,7 @@ make_msa_plotly <- function(taxon, varRegions,
                             RADx_occ_path = "testdata/example_RADx_occurrences.csv") {
   library(tidyverse)
   library(plotly)
+  library(ggtext)
   
   # this parser turns a text list in a cell into a real R list - this will depend on what the file actually looks like
   parser <- function(x) {
@@ -146,7 +147,7 @@ make_msa_plotly <- function(taxon, varRegions,
   
   #####################################################################################
   
-  View(y_breaks)
+  #View(y_breaks)
   
   # tile plot of selected variable regions by species.
   # segments are the bracket on the leftmost variable region to show species 
@@ -156,9 +157,8 @@ make_msa_plotly <- function(taxon, varRegions,
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
-      labels = paste0(y_breaks$species, "\n", y_breaks$n_copies, " 16S gene copies"),
-      trans = "reverse",
-      expand = expansion(mult = c(0.02, 0.02))
+      labels = paste0(y_breaks$species, "<br><span style='font-size:6pt;'>", y_breaks$n_copies, " 16S gene copies</span>"),
+      trans = "reverse"
     ) +
     # the geom_segments add the bracket for each species
     geom_segment(
@@ -176,12 +176,17 @@ make_msa_plotly <- function(taxon, varRegions,
       aes(x = x, xend = x + tick, y = ymin, yend = ymin),
       inherit.aes = FALSE
     ) +
-    labs(x = NULL, y = "Species") +
+    labs(x = NULL, y = NULL) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90)) +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    theme(
+      axis.text.y = ggtext::element_markdown()
+    )
   
-  p_plotly <- ggplotly(p_msa, tooltip = c("y", "variable_region_clean", "copy_num", "sequence"))
+  
+  p_plotly <- ggplotly(p_msa, tooltip = c("y", "variable_region_clean", "copy_num", "sequence")) %>%
+    layout(margin = list(l = 160, r = 30, t = 50, b = 40))
   
   
   ##### this is formatting to make sure all the different facets are the same width
