@@ -1,7 +1,7 @@
 library(shiny)
 library(bslib)
 library(plotly)
-source("~/Desktop/RAD/visualization.R")
+source("visualization.R")
 
 ui = page_sidebar(
   title = "RAD Explorer",
