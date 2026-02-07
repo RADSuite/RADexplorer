@@ -18,9 +18,7 @@ make_msa_plotly <- function(taxon, varRegions,
   RADx_occ <- readr::read_csv(RADx_occ_path, show_col_types = FALSE)
   
   # which variable regions you want to plot - user selects these on RShiny
-  selectedVariableRegions <- c(
-    "V1regions","V2regions","V3regions","V4regions","V5regions","V6regions","V7regions","V8regions","V9regions"
-  )
+  selectedVariableRegions <- varRegions
   
   # keep only what we need from RADq
   RADqfiltered <- RADq %>% select(species, any_of(selectedVariableRegions))
