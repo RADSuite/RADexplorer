@@ -156,7 +156,7 @@ make_msa_plotly <- function(taxon, varRegions,
     scale_y_continuous(
       breaks = y_breaks$y_lab,
       labels = paste0(
-        "<span style='font-size:10pt; line-height:1.1;'>", y_breaks$species, "</span>",
+        "<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", y_breaks$species, "</span>",
         "<br><span style='font-size:6pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene copies</span>"
       ),
       trans = "reverse"
@@ -179,9 +179,9 @@ make_msa_plotly <- function(taxon, varRegions,
     ) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
-    theme(axis.text.x = element_text(angle = 90)) +
-    theme(legend.position = "none") +
     theme(
+      axis.text.x = element_text(angle = 90),
+      legend.position = "none",
       axis.text.y = ggtext::element_markdown()
     )
   
