@@ -157,7 +157,10 @@ make_msa_plotly <- function(taxon, varRegions,
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
-      labels = paste0(y_breaks$species, "<br><span style='font-size:6pt;'>", y_breaks$n_copies, " 16S gene copies</span>"),
+      labels = paste0(
+        "<span style='font-size:10pt; line-height:1.1;'>", y_breaks$species, "</span>",
+        "<br><span style='font-size:6pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene copies</span>"
+      ),
       trans = "reverse"
     ) +
     # the geom_segments add the bracket for each species
@@ -186,7 +189,7 @@ make_msa_plotly <- function(taxon, varRegions,
   
   
   p_plotly <- ggplotly(p_msa, tooltip = c("y", "variable_region_clean", "copy_num", "sequence")) %>%
-    layout(margin = list(l = 160, r = 30, t = 50, b = 40))
+    layout(margin = list(l = 125, r = 30, t = 50, b = 40))
   
   
   ##### this is formatting to make sure all the different facets are the same width
