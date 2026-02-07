@@ -156,7 +156,7 @@ make_msa_plotly <- function(taxon, varRegions,
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
-      labels = paste(y_breaks$species, "\n", y_breaks$n_copies, " 16S gene copies"),
+      labels = paste0(y_breaks$species, "\n", y_breaks$n_copies, " 16S gene copies"),
       trans = "reverse",
       expand = expansion(mult = c(0.02, 0.02))
     ) +
