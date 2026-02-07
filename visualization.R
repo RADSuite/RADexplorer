@@ -1,6 +1,6 @@
 make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "~/Desktop/RAD/example_RADx_input.csv",
-                            RADx_occ_path = "~/Desktop/RAD/example_RADx_occurrences.csv") {
+                            RADq_path = "testdata/example_RADx_input.csv",
+                            RADx_occ_path = "testdata/example_RADx_occurrences.csv") {
   library(tidyverse)
   library(plotly)
   
