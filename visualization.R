@@ -49,7 +49,7 @@ make_msa_plotly <- function(taxon, varRegions,
   #####################################################################################
   
   # this designs the stacked tile setup, calculates y coordinates based on number of copies
-  gap <- .5  # space between species
+  gap <- 1.5  # space between species
   
   species_levels <- RADqlonger %>%
     distinct(species) %>%
@@ -143,9 +143,10 @@ make_msa_plotly <- function(taxon, varRegions,
       variable_region_clean = first_facet
     )
   
-  #####################################################################################
   
   #View(y_breaks)
+  
+  #####################################################################################
   
   # tile plot of selected variable regions by species.
   # segments are the bracket on the leftmost variable region to show species 
@@ -199,7 +200,7 @@ make_msa_plotly <- function(taxon, varRegions,
   
   n_facets <- length(facet_levels)
   
-  gap_dom <- 0.01  # gap between facet panels
+  gap_dom <- 0.001  # gap between facet panels
   panel_w <- (1 - gap_dom * (n_facets - 1)) / n_facets
   
   for (i in seq_len(n_facets)) {
