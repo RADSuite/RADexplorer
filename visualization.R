@@ -192,7 +192,7 @@ make_msa_plotly <- function(taxon, varRegions,
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
   
   
-  ##### this is formatting to make sure all the different facets are the same width
+  ##### this is formatting to make sure all the different facets are the same width and that the facet titles are in the right spots
   facet_levels <- RADqtiles %>%
     distinct(variable_region_clean) %>%
     arrange(variable_region_clean) %>%
@@ -200,18 +200,30 @@ make_msa_plotly <- function(taxon, varRegions,
   
   n_facets <- length(facet_levels)
   
-  gap_dom <- 0.001  # gap between facet panels
+  gap_dom <- 0.001
   panel_w <- (1 - gap_dom * (n_facets - 1)) / n_facets
   
+  # set x domains
   for (i in seq_len(n_facets)) {
     ax <- if (i == 1) "xaxis" else paste0("xaxis", i)
     left  <- (i - 1) * (panel_w + gap_dom)
     right <- left + panel_w
-    
-    if (!is.null(p_plotly$x$layout[[ax]])) {
-      p_plotly$x$layout[[ax]]$domain <- c(left, right)
+    p_plotly$x$layout[[ax]]$domain <- c(left, right)
+  }
+  
+  mids <- (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
+  anns <- p_plotly$x$layout$annotations
+  
+  for (i in seq_len(n_facets)) {
+    idx <- which(vapply(anns, function(a) isTRUE(a$text == facet_levels[i]), logical(1)))
+    if (length(idx) == 1) {
+      anns[[idx]]$xref <- "paper"
+      anns[[idx]]$x <- mids[i]
+      anns[[idx]]$xanchor <- "center"
     }
   }
+  
+  p_plotly$x$layout$annotations <- anns
   ######
   
   p_plotly
