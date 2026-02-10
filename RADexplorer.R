@@ -1,67 +1,57 @@
-ui <- page_sidebar(
-  title = "RADexplorer",
-  
-  sidebar = sidebar(
-    uiOutput("sidebar_ui")
-  ),
-  
-  tabsetPanel(
-    id = "step",
-    type = "hidden",
-    
-    tabPanel(
-      "setup",
-      card(
-        h5("Would you like to use RADlib or upload your own database?"),
-        radioButtons(
-          "mode",
-          label = NULL,
-          choices = c("RADlib" = "RADlib", "Upload my own" = "upload")
-        ),
-        actionButton("continue", "Continue")
-      )
-    ),
-    
-    tabPanel(
-      "settings",
-      card(
-        uiOutput("main_ui")
-      )
-    )
-  )
-)
+library(shiny)
+library(bslib)
+library(plotly)
+source("visualization.R")
+
+ui <- uiOutput("page")
 
 server <- function(input, output, session) {
   
-  observeEvent(input$continue, {
-    req(input$mode == "RADlib")
-    updateTabsetPanel(session, "step", selected = "settings")
-  })
-  
-  output$sidebar_ui <- renderUI({
-    req(input$mode == "RADlib")
-    tagList(
-      title = "Navigate",
-      textInput("taxon", "Input taxon to explore:", value = "test data"),
-      checkboxGroupInput(
-        "varRegions",
-        "Select all 16S gene variable regions to include:",
-        choices = list(
-          "1" = "V1regions","2" = "V2regions","3" = "V3regions","4" = "V4regions",
-          "5" = "V5regions","6" = "V6regions","7" = "V7regions","8" = "V8regions","9" = "V9regions"
-        ),
-        selected = c("V1regions","V2regions","V3regions","V4regions","V5regions","V6regions","V7regions","V8regions","V9regions")
-      ),
-      actionButton("submit", "Submit")
-    )
-  })
-  
-  output$main_ui <- renderUI({
-    req(input$mode == "RADlib")
-    if (is.null(input$submit) || input$submit == 0) {
-      div("Select options in the sidebar, then click Submit.")
+  output$page <- renderUI({
+    # before user selects database to use
+    if (is.null(input$continue) || input$continue == 0) {
+      page_fixed(
+        title = "RADexplorer",
+        card(
+          h5("Would you like to use RADlib or upload your own database?"),
+          radioButtons(
+            "mode",
+            label = NULL,
+            choices = c("RADlib" = "RADlib", "Upload my own" = "upload")
+          ),
+          actionButton("continue", "Continue")
+        )
+      )
     } else {
-      plotlyOutput("visual", height = "650px")
+      # after user selects database to use
+      req(input$mode == "RADlib")
+      
+      page_sidebar(
+        title = "RADexplorer",
+        sidebar = sidebar(
+          title = "Navigate",
+          textInput("taxon", "Input taxon to explore:", value = "test data"),
+          checkboxGroupInput(
+            "varRegions",
+            "Select all 16S gene variable regions to include:",
+            choices = list(
+              "1" = "V1regions","2" = "V2regions","3" = "V3regions","4" = "V4regions",
+              "5" = "V5regions","6" = "V6regions","7" = "V7regions","8" = "V8regions","9" = "V9regions"
+            ),
+            selected = c("V1regions","V2regions","V3regions","V4regions","V5regions",
+                         "V6regions","V7regions","V8regions","V9regions")
+          ),
+          actionButton("submit", "Submit")
+        ),
+        card(
+          conditionalPanel("input.submit == 0",
+                           div("Select options in the sidebar, then click Submit.", style = "padding:12px;")
+          ),
+          conditionalPanel("input.submit > 0",
+                           plotlyOutput("visual", height = "650px")
+          )
+        )
+      )
     }
   })
   
