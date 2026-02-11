@@ -32,7 +32,8 @@ server <- function(input, output, session) {
         div(
           style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
           card(
-            h5("Would you like to use RADlib or upload your own database?"),
+            h4("Welcome to RADexplorer!", style = "text-decoration: underline;"),
+            p("Would you like to use native RADlib or upload your own database?"),
             radioButtons(
               "mode", label = NULL,
               choices = c("RADlib" = "RADlib", "Upload my own" = "upload")
@@ -44,7 +45,7 @@ server <- function(input, output, session) {
       
     } else if (screen() == "radlib") {
       page_sidebar(
-        title = "RADexplorer",
+        title = "RADx",
         sidebar = sidebar(
           textInput("taxon", "Input taxon to explore:", value = "test data"),
           checkboxGroupInput(

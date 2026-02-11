@@ -1,63 +1,42 @@
 make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "testdata/example_RADx_input.csv",
-                            RADx_occ_path = "testdata/example_RADx_occurrences.csv") {
+                            RADq_path = "testdata/example_RADx_occurrences.csv") {
   library(tidyverse)
   library(plotly)
   library(ggtext)
   
-  # this parser turns a text list in a cell into a real R list - this will depend on what the file actually looks like
-  parser <- function(x) {
-    if (is.na(x) || x == "") return(character(0))
-    x2 <- gsub('\\\\\"', '"', x)
-    tmp <- readr::read_csv(I(x2), col_names = FALSE, show_col_types = FALSE)
-    as.character(unlist(tmp[1, ], use.names = FALSE))
-  }
-  
-  # inputs
+  # read in RADq input
   RADq <- readr::read_csv(RADq_path, show_col_types = FALSE)
-  RADx_occ <- readr::read_csv(RADx_occ_path, show_col_types = FALSE)
   
-  # which variable regions you want to plot - user selects these on RShiny
+  # user selected variable regions
   selectedVariableRegions <- varRegions
+  selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
   
-  # keep only what we need from RADq
-  RADqfiltered <- RADq %>% select(species, any_of(selectedVariableRegions))
+  View(RADq)
   
-  # go long, parse lists, go longer so every copy is one row
-  RADqlonger <- RADqfiltered %>%
-    pivot_longer(
-      cols = -species,
-      names_to = "variable_region",
-      values_to = "sequences"
+  # keep only selected regions + keep only the columns we actually use for plotting
+  RADqtiles <- RADq %>%
+    filter(variable_region %in% selected_regions_clean) %>%
+    transmute(
+      species,
+      variable_region_clean = variable_region,
+      copy_num,
+      seq_id
     ) %>%
-    mutate(
-      variable_region_clean = sub("regions$", "", variable_region),
-      sequences = map(sequences, parser)
-    ) %>%
-    unnest_wider(sequences, names_sep = "_") %>%
-    pivot_longer(
-      cols = starts_with("sequences_"),
-      names_to = "copy_id",
-      values_to = "sequence"
-    ) %>%
-    mutate(
-      copy_num = readr::parse_number(copy_id)
-    ) %>%
-    filter(!is.na(sequence) & sequence != "")
-  
+    filter(!is.na(copy_num), !is.na(seq_id))
   
   #####################################################################################
+  # stack gene copies within each species, with gaps between species
   
-  # this designs the stacked tile setup, calculates y coordinates based on number of copies
-  gap <- 1.5  # space between species
+  gap <- 1.5  # vertical space between species blocks
   
-  species_levels <- RADqlonger %>%
+  # lock species ordering
+  species_levels <- RADqtiles %>%
     distinct(species) %>%
     arrange(species) %>%
     pull(species)
   
-  # count how many copies each species actually has (so no weird empty space inside blocks)
-  copies_tbl <- RADqlonger %>%
+  #### determines spacing between species based on how many gene copies there are
+  copies_tbl <- RADqtiles %>%
     distinct(species, copy_num) %>%
     count(species, name = "n_copies") %>%
     mutate(species = factor(species, levels = species_levels)) %>%
@@ -68,10 +47,9 @@ make_msa_plotly <- function(taxon, varRegions,
       y_lab = (start + end) / 2
     )
   
-  
-  RADqtiles <- RADqlonger %>%
+  RADqtiles <- RADqtiles %>%
     mutate(
-      x_one   = 1,
+      x_one   = 1,  # one tile per facet column, x is basically just a placeholder
       species = factor(species, levels = species_levels)
     ) %>%
     left_join(copies_tbl %>% select(species, start), by = "species") %>%
@@ -79,43 +57,25 @@ make_msa_plotly <- function(taxon, varRegions,
       y = start + copy_num - 1
     )
   
-  # y axis labels - show species name only once per group of gene copies
+  ####
+  
+  # one label per species block 
   y_breaks <- copies_tbl %>% select(species, y_lab, n_copies)
   
   #####################################################################################
   
-  # map (region, sequence) -> seq_id from the RADx occurrences file
-  # this is what we use to color the tiles
-  seq_map <- RADx_occ %>%
-    transmute(
-      variable_region_clean = variable_region,
-      sequence,
-      seq_id
-    ) %>%
-    distinct(variable_region_clean, sequence, seq_id) %>%
-    mutate(seq_id = factor(seq_id))
-  
   RADqtiles <- RADqtiles %>%
-    left_join(seq_map, by = c("variable_region_clean", "sequence"))
-  
-  # make seq_id local within each variable region
-  # this is to make colors reset inside each variable region - is that what we want?
-  RADqtiles <- RADqtiles %>%
-    group_by(variable_region_clean) %>%
     mutate(
-      seq_id_local = factor(dense_rank(seq_id))
-    ) %>%
-    ungroup()
+      seq_id_local = factor(gsub("^V[0-9]+", "", seq_id))
+    )
   
-  #View(RADqtiles)
-  
-  # order the gene copies so that like colors are grouped together
+  # reorder copies within each species, groups like copies together
   RADqtiles <- RADqtiles %>%
     group_by(species, variable_region_clean) %>%
-    add_count(sequence, name = "seq_n") %>%
-    arrange(desc(seq_n), sequence, copy_num, .by_group = TRUE) %>%
+    add_count(seq_id_local, name = "seq_n") %>%
+    arrange(desc(seq_n), seq_id_local, copy_num, .by_group = TRUE) %>%
     mutate(
-      copy_num = row_number(),
+      copy_num = row_number(),           
       start = as.numeric(start),
       y = start + as.numeric(copy_num) - 1
     ) %>%
@@ -123,11 +83,12 @@ make_msa_plotly <- function(taxon, varRegions,
     select(-seq_n)
   
   #####################################################################################
+  # determining coordinates for bracket on the left
   
-  # bracket coordinate calculation
   tile_center <- 1
   tile_width  <- 0.95
   
+  # find the leftmost facet 
   first_facet <- RADqtiles %>%
     distinct(variable_region_clean) %>%
     arrange(variable_region_clean) %>%
@@ -138,21 +99,16 @@ make_msa_plotly <- function(taxon, varRegions,
     transmute(
       ymin = start,
       ymax = end,
-      x    = tile_center - tile_width/2 - 0.10,  # gap left of tile edge
+      x    = tile_center - tile_width/2 - 0.10,
       tick = 0.05,
       variable_region_clean = first_facet
     )
   
-  
-  #View(y_breaks)
-  
   #####################################################################################
   
-  # tile plot of selected variable regions by species.
-  # segments are the bracket on the leftmost variable region to show species 
   p_msa <- ggplot(RADqtiles, aes(x = x_one, y = y)) +
     geom_tile(aes(fill = seq_id_local), color = "black", width = 0.95, height = 0.95) +
-    facet_grid(~ variable_region_clean, scales = "free_x") +   # remove space = "free_x"
+    facet_grid(~ variable_region_clean, scales = "free_x") +
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
@@ -162,17 +118,19 @@ make_msa_plotly <- function(taxon, varRegions,
       ),
       trans = "reverse"
     ) +
-    # the geom_segments add the bracket for each species
+    # bracket vertical 
     geom_segment(
       data = brackets_one,
       aes(x = x, xend = x, y = ymin, yend = ymax),
       inherit.aes = FALSE
     ) +
+    # bracket top 
     geom_segment(
       data = brackets_one,
       aes(x = x, xend = x + tick, y = ymax, yend = ymax),
       inherit.aes = FALSE
     ) +
+    # bracket bottom 
     geom_segment(
       data = brackets_one,
       aes(x = x, xend = x + tick, y = ymin, yend = ymin),
@@ -182,17 +140,23 @@ make_msa_plotly <- function(taxon, varRegions,
     theme_minimal() +
     theme(
       axis.text.x = element_text(angle = 90),
-      legend.position = "none",
+      legend.position = "right",
       axis.text.y = ggtext::element_markdown(),
       strip.text = element_text(size = 12)
     )
   
+  #####################################################################################
+  # convert to plotly 
   
-  p_plotly <- ggplotly(p_msa, tooltip = c("y", "variable_region_clean", "copy_num", "sequence")) %>%
+  p_plotly <- ggplotly(
+    p_msa,
+    tooltip = c("y", "variable_region_clean", "copy_num", "seq_id")
+  ) %>%
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
   
+  #####################################################################################
+  # fix formatting on facet titles, positions, etc
   
-  ##### this is formatting to make sure all the different facets are the same width and that the facet titles are in the right spots
   facet_levels <- RADqtiles %>%
     distinct(variable_region_clean) %>%
     arrange(variable_region_clean) %>%
@@ -200,10 +164,10 @@ make_msa_plotly <- function(taxon, varRegions,
   
   n_facets <- length(facet_levels)
   
-  gap_dom <- 0.001
+  gap_dom <- 0.001  # horizontal gap between facets
   panel_w <- (1 - gap_dom * (n_facets - 1)) / n_facets
   
-  # set x domains
+  # enforce same width for each facet
   for (i in seq_len(n_facets)) {
     ax <- if (i == 1) "xaxis" else paste0("xaxis", i)
     left  <- (i - 1) * (panel_w + gap_dom)
@@ -211,6 +175,7 @@ make_msa_plotly <- function(taxon, varRegions,
     p_plotly$x$layout[[ax]]$domain <- c(left, right)
   }
   
+  # recenter facet titles
   mids <- (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
   anns <- p_plotly$x$layout$annotations
   
@@ -224,7 +189,9 @@ make_msa_plotly <- function(taxon, varRegions,
   }
   
   p_plotly$x$layout$annotations <- anns
-  ######
+  
+  #####################################################################################
+  # final output
   
   p_plotly
 }
