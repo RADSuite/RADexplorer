@@ -1,15 +1,26 @@
 make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "testdata/exampleRADq.csv") {
+                            RADq_path = "testdata/exampleRADq.csv",
+                            unique_path = "testdata/unique.csv") {
   library(tidyverse)
   library(plotly)
   library(ggtext)
   
   # read in RADq input
   RADq <- readr::read_csv(RADq_path, show_col_types = FALSE)
+  unique <- readr::read_csv(unique_path, show_col_types = FALSE)
   
   # user selected variable regions
   selectedVariableRegions <- varRegions
   selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
+  
+  unique_com = unique %>%
+    select("taxa", selected_regions_clean)
+  
+  View(unique_com)
+  
+  
+  
+  View(vtable_complete)
   
   #View(RADq)
   
@@ -150,7 +161,7 @@ make_msa_plotly <- function(taxon, varRegions,
   
   p_plotly <- ggplotly(
     p_msa,
-    tooltip = c("y", "variable_region_clean", "copy_num", "seq_id")
+    tooltip = "seq_id"
   ) %>%
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
   
