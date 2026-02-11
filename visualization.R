@@ -13,15 +13,6 @@ make_msa_plotly <- function(taxon, varRegions,
   selectedVariableRegions <- varRegions
   selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
   
-  unique_com = unique %>%
-    select("taxa", selected_regions_clean)
-  
-  View(unique_com)
-  
-  
-  
-  View(vtable_complete)
-  
   #View(RADq)
   
   # keep only selected regions + keep only the columns we actually use for plotting
@@ -74,6 +65,38 @@ make_msa_plotly <- function(taxon, varRegions,
   y_breaks <- copies_tbl %>% select(species, y_lab, n_copies)
   
   #####################################################################################
+  # mark variable regions where unique 
+  
+  unique_com <- unique %>%
+    select(taxa, any_of(selected_regions_clean))
+  
+  unique_long <- unique_com %>%
+    pivot_longer(
+      cols = -taxa,
+      names_to = "variable_region_clean",
+      values_to = "flag"
+    ) %>%
+    filter(flag == 1) %>%
+    transmute(
+      species = taxa,
+      variable_region_clean
+    )
+  
+  unique_key <- unique_long %>%
+    mutate(is_unique_block = TRUE)
+  
+  tile_w <- 0.95
+  rect_df <- unique_long %>%
+    left_join(copies_tbl %>% select(species, start, end), by = "species") %>%
+    mutate(
+      xmin = 1 - tile_w / 2,
+      xmax = 1 + tile_w / 2,
+      ymin = start - 0.5,
+      ymax = end + 0.5
+    ) %>%
+    filter(!is.na(start), !is.na(end))
+  
+  #####################################################################################
   
   RADqtiles <- RADqtiles %>%
     mutate(
@@ -92,6 +115,15 @@ make_msa_plotly <- function(taxon, varRegions,
     ) %>%
     ungroup() %>%
     select(-seq_n)
+  
+  # sets tile opacity based on uniqueness
+  RADqtiles <- RADqtiles %>%
+    left_join(unique_key, by = c("species", "variable_region_clean")) %>%
+    mutate(
+      is_unique_block = if_else(is.na(is_unique_block), FALSE, is_unique_block)
+    )
+  
+  #View(RADqtiles)
   
   #####################################################################################
   # determining coordinates for bracket on the left
@@ -117,8 +149,30 @@ make_msa_plotly <- function(taxon, varRegions,
   
   #####################################################################################
   
+  RADqtiles_unique <- RADqtiles %>% filter(is_unique_block)
+  RADqtiles_nonunique  <- RADqtiles %>% filter(!is_unique_block)
+  
   p_msa <- ggplot(RADqtiles, aes(x = x_one, y = y)) +
-    geom_tile(aes(fill = seq_id_local), color = "black", width = 0.95, height = 0.95) +
+    geom_rect(
+      data = rect_df,
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      inherit.aes = FALSE,
+      color = "black",
+      fill = NA,
+      linewidth = 1
+    ) +
+    geom_tile(
+      data = RADqtiles_nonunique,
+      aes(x = x_one, y = y, fill = seq_id_local),
+      alpha = 0.5,
+      color = "black", width = 0.95, height = 0.95
+    ) +
+    geom_tile(
+      data = RADqtiles_unique,
+      aes(x = x_one, y = y, fill = seq_id_local),
+      alpha = 1,
+      color = "black", width = 0.95, height = 0.95
+    ) +
     facet_grid(~ variable_region_clean, scales = "free_x") +
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
@@ -151,7 +205,7 @@ make_msa_plotly <- function(taxon, varRegions,
     theme_minimal() +
     theme(
       axis.text.x = element_text(angle = 90),
-      legend.position = "right",
+      legend.position = "none",
       axis.text.y = ggtext::element_markdown(),
       strip.text = element_text(size = 12)
     )
