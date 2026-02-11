@@ -1,5 +1,5 @@
 make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "testdata/example_RADx_occurrences.csv") {
+                            RADq_path = "testdata/exampleRADq.csv") {
   library(tidyverse)
   library(plotly)
   library(ggtext)
@@ -11,7 +11,7 @@ make_msa_plotly <- function(taxon, varRegions,
   selectedVariableRegions <- varRegions
   selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
   
-  View(RADq)
+  #View(RADq)
   
   # keep only selected regions + keep only the columns we actually use for plotting
   RADqtiles <- RADq %>%
