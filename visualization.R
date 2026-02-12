@@ -105,6 +105,12 @@ make_msa_plotly <- function(taxon, varRegions,
         ymax = end + 0.475
       ) %>%
       filter(!is.na(start), !is.na(end))
+    
+    rect_df <- rect_df %>%
+      mutate(hover = paste0(
+        "Taxon: ", species,
+        "<br>Region: ", variable_region_clean
+      ))
   }
   
   #####################################################################################
@@ -151,39 +157,35 @@ make_msa_plotly <- function(taxon, varRegions,
   RADqtiles_unique <- RADqtiles %>% filter(is_unique_block)
   RADqtiles_nonunique <- RADqtiles %>% filter(!is_unique_block)
   
-  alpha_nonunique <- if (isTRUE(highlight_unique)) 0.5 else 1
+  alpha_nonunique <- if (highlight_unique) 0.5 else 1
   
-  p_msa <- ggplot(RADqtiles, aes(x = x_one, y = y)) +
-    
-    # outline boxes for unique regions if selected
-    { if ((highlight_unique) && nrow(rect_df) > 0)
-      geom_rect(
-        data = rect_df,
-        aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-        inherit.aes = FALSE,
-        color = "black",
-        fill = NA,
-        linewidth = 1
+  # base ggplot
+  p_msa <- ggplot() + facet_grid(~ variable_region_clean, scales = "free_x")
+  
+  # add the tiles that are non unique (if they exist)
+  if (nrow(RADqtiles_nonunique) > 0) {
+    p_msa <- p_msa +
+      geom_tile(
+        data = RADqtiles_nonunique,
+        aes(x = x_one, y = y, fill = seq_id_local),
+        alpha = alpha_nonunique,
+        color = "black", width = 0.95, height = 0.95
       )
-    } +
-    
-    # tiles for non-unique regions (optionally dimmed)
-    geom_tile(
-      data = RADqtiles_nonunique,
-      aes(fill = seq_id_local),
-      alpha = alpha_nonunique,
-      color = "black", width = 0.95, height = 0.95
-    ) +
-    
-    # tiles for unique regions (full opacity)
-    geom_tile(
-      data = RADqtiles_unique,
-      aes(fill = seq_id_local),
-      alpha = 1,
-      color = "black", width = 0.95, height = 0.95
-    ) +
-    
-    facet_grid(~ variable_region_clean, scales = "free_x") +
+  }
+  
+  # add the tiles that are unique (if they exist)
+  if (nrow(RADqtiles_unique) > 0) {
+    p_msa <- p_msa +
+      geom_tile(
+        data = RADqtiles_unique,
+        aes(x = x_one, y = y, fill = seq_id_local),
+        alpha = 1,
+        color = "black", width = 0.95, height = 0.95
+      )
+  }
+  
+  # formatting + brackets
+  p_msa <- p_msa +
     scale_x_continuous(breaks = 1, labels = "") +
     scale_y_continuous(
       breaks = y_breaks$y_lab,
@@ -193,26 +195,9 @@ make_msa_plotly <- function(taxon, varRegions,
       ),
       trans = "reverse"
     ) +
-    
-    # bracket vertical
-    geom_segment(
-      data = brackets_one,
-      aes(x = x, xend = x, y = ymin, yend = ymax),
-      inherit.aes = FALSE
-    ) +
-    # bracket top
-    geom_segment(
-      data = brackets_one,
-      aes(x = x, xend = x + tick, y = ymax, yend = ymax),
-      inherit.aes = FALSE
-    ) +
-    # bracket bottom
-    geom_segment(
-      data = brackets_one,
-      aes(x = x, xend = x + tick, y = ymin, yend = ymin),
-      inherit.aes = FALSE
-    ) +
-    
+    geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
+    geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
+    geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
     theme(
@@ -222,10 +207,28 @@ make_msa_plotly <- function(taxon, varRegions,
       strip.text = element_text(size = 12)
     )
   
+  # add outline boxes for unique regions if toggled
+  if (highlight_unique && nrow(rect_df) > 0) {
+    p_msa <- p_msa +
+      geom_rect(
+        data = rect_df,
+        aes(
+          xmin = xmin, xmax = xmax,
+          ymin = ymin, ymax = ymax,
+          text = hover
+        ),
+        inherit.aes = FALSE,
+        color = "black",
+        fill = NA,
+        linewidth = .6
+      )
+  }
+  
+  
   #####################################################################################
   # convert to plotly
   
-  p_plotly <- ggplotly(p_msa, tooltip = "seq_id") %>%
+  p_plotly <- ggplotly(p_msa, tooltip = c("text", "seq_id")) %>%
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
   
   #####################################################################################
@@ -254,7 +257,7 @@ make_msa_plotly <- function(taxon, varRegions,
   anns <- p_plotly$x$layout$annotations
   
   for (i in seq_len(n_facets)) {
-    idx <- which(vapply(anns, function(a) isTRUE(a$text == facet_levels[i]), logical(1)))
+    idx <- which(vapply(anns, function(a) (a$text == facet_levels[i]), logical(1)))
     if (length(idx) == 1) {
       anns[[idx]]$xref <- "paper"
       anns[[idx]]$x <- mids[i]
@@ -274,6 +277,8 @@ make_msa_plotly <- function(taxon, varRegions,
 
 
 
+
+make_msa_plotly("test", "V1regions", "~/RADexplorer/testdata/exampleRADq.csv", "~/RADexplorer/testdata/unique.csv", TRUE)
 
 
 

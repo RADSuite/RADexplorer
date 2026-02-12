@@ -54,6 +54,11 @@ server <- function(input, output, session) {
             choices = setNames(paste0("V",1:9,"regions"), 1:9),
             selected = paste0("V",1:9,"regions")
           ),
+          checkboxInput(
+            "uniqueRegions",
+            label = "Unique region view",
+            value = FALSE
+          ),
           div(
             style = "display:flex; gap:10px; width:100%;",
             actionButton("submit", "Submit", style = "flex:1;"),
@@ -91,7 +96,7 @@ server <- function(input, output, session) {
   
   msa_plot <- eventReactive(input$submit, {
     req(input$mode == "RADlib")
-    make_msa_plotly(taxon = input$taxon, varRegions = input$varRegions)
+    make_msa_plotly(taxon = input$taxon, varRegions = input$varRegions, highlight_unique = input$uniqueRegions)
   })
   
   output$visual <- renderPlotly({
