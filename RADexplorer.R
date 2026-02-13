@@ -3,6 +3,14 @@ library(bslib)
 library(plotly)
 source("visualization.R")
 
+genus <- readLines("testdata/genus.txt", warn = FALSE)
+genus <- trimws(genus)
+genus <- genus[nzchar(genus)]
+
+genus_species <- readLines("testdata/Genusspecies.txt", warn = FALSE)
+genus_species <- trimws(genus_species)
+genus_species <- genus_species[nzchar(genus_species)]
+
 ui <- uiOutput("page")
 
 server <- function(input, output, session) {
@@ -10,14 +18,47 @@ server <- function(input, output, session) {
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
   
+  observeEvent(screen(), {
+    req(screen() == "taxaSelect")
+    
+    session$onFlushed(function() {
+      updateSelectizeInput(session, "selectGenus", choices = genus, server = TRUE)
+    }, once = TRUE)
+  })
+  
+  observeEvent(input$selectGenus, {
+    req(screen() == "taxaSelect")
+    req(input$selectGenus)
+    
+    prefix <- paste0(input$selectGenus, " ")
+    sp <- genus_species[startsWith(genus_species, prefix)]
+    
+    updateSelectizeInput(
+      session,
+      "selectTaxa",
+      choices = sp,
+      selected = character(0),
+      server = TRUE
+    )
+  })
+  
   observeEvent(input$continue, {
     req(input$mode)
-    if (input$mode == "RADlib") screen("radlib")
+    if (input$mode == "RADlib") screen("taxaSelect")
     if (input$mode == "upload") screen("upload")
   })
   
+  
   observeEvent(input$backToMenu, {
     screen("menu")
+  })
+  
+  observeEvent(input$continueWithTaxa, {
+    screen("radlib")
+  })
+  
+  observeEvent(input$toTaxaSelect, {
+    screen("taxaSelect")
   })
   
   observeEvent(input$continueWithFile, {
@@ -87,6 +128,42 @@ server <- function(input, output, session) {
               style = "display:flex; gap:12px; width:100%;",
               actionButton("backToMenu", "Back", style = "flex:1;"),
               actionButton("continueWithFile", "Continue", style = "flex:1;")
+            )
+          )
+        )
+      )
+    } else if (screen() == "taxaSelect") {
+      page_fillable(
+        title = "Select taxa to analyze",
+        div(
+          style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
+          card(
+            style = "width: min(1200px, 96vw); height: min(900px, 92vh);",
+            card_body(
+              style = "height: 90%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;",
+              
+              selectizeInput(
+                "selectGenus",
+                "Select genus below:",
+                choices = NULL,
+                multiple = FALSE,
+                options = list(placeholder = "Type to search", maxOptions = 200)
+              ),
+              
+              checkboxInput("entireGenus", "Analyze entire genus?", TRUE),
+              
+              conditionalPanel(
+                condition = "input.entireGenus == false",
+                selectizeInput(
+                  "selectTaxa",
+                  "Select species below:",
+                  choices = NULL,
+                  multiple = TRUE,
+                  options = list(placeholder = "Type to search", maxOptions = 200,
+                                 closeAfterSelect = FALSE)
+                )
+              ),
+              actionButton("continueWithTaxa", "Explore")
             )
           )
         )
