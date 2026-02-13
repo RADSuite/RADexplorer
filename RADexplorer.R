@@ -163,7 +163,11 @@ server <- function(input, output, session) {
                                  closeAfterSelect = FALSE)
                 )
               ),
-              actionButton("continueWithTaxa", "Explore")
+              div(
+                style = "display:flex; gap:12px; width:100%;",
+                actionButton("backToMenu", "Back", style = "flex:1;"),
+                actionButton("continueWithTaxa", "Continue", style = "flex:1;")
+              )
             )
           )
         )
