@@ -138,7 +138,7 @@ server <- function(input, output, session) {
         div(
           style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
           card(
-            style = "width: min(1200px, 96vw); height: min(900px, 92vh);",
+            style = "width: min(1200px, 40vw); height: min(900px, 60vh);",
             card_body(
               style = "height: 90%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;",
               
