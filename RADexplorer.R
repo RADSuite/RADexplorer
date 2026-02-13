@@ -148,18 +148,18 @@ server <- function(input, output, session) {
             card_body(
               style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
               selectizeInput(
-                "selectGenus", "Select genus or genera below:",
+                "selectGenus", "Select genus or genera to analyze:",
                 choices = NULL, multiple = TRUE,
                 options = list(placeholder = "Type to search", maxOptions = 10000),
                 width = "100%"
               ),
-              checkboxInput("entireGenus", "Analyze all members of the selected genus or genera?", TRUE, width = "auto"),
+              checkboxInput("entireGenus", "Analyze all members of the selected genus or genera", TRUE, width = "auto"),
               conditionalPanel(
                 condition = "input.entireGenus == false",
                 div(
                   style = "flex: 0 1 700px; width: 100%;",
                   selectizeInput(
-                    "selectTaxa", "Select species below:",
+                    "selectTaxa", "Select species to analyze:",
                     choices = NULL, multiple = TRUE,
                     options = list(
                       placeholder = "Type to search",
