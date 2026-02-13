@@ -150,7 +150,7 @@ server <- function(input, output, session) {
               selectizeInput(
                 "selectGenus", "Select genus or genera below:",
                 choices = NULL, multiple = TRUE,
-                options = list(placeholder = "Type to search", maxOptions = 200),
+                options = list(placeholder = "Type to search", maxOptions = 10000),
                 width = "100%"
               ),
               checkboxInput("entireGenus", "Analyze all members of the selected genus or genera?", TRUE, width = "auto"),
@@ -163,7 +163,7 @@ server <- function(input, output, session) {
                     choices = NULL, multiple = TRUE,
                     options = list(
                       placeholder = "Type to search",
-                      maxOptions = 200,
+                      maxOptions = 10000,
                       closeAfterSelect = FALSE
                     ),
                     width = "100%"
