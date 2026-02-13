@@ -94,7 +94,6 @@ server <- function(input, output, session) {
       page_sidebar(
         title = "RADx",
         sidebar = sidebar(
-          textInput("taxon", "Input taxon to explore:", value = "test data"),
           checkboxGroupInput(
             "varRegions",
             "Select all 16S gene variable regions to include:",

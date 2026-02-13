@@ -241,19 +241,26 @@ make_msa_plotly <- function(taxon, varRegions,
   
   n_facets <- length(facet_levels)
   
-  gap_dom <- 0.001  # horizontal gap between facets
-  panel_w <- (1 - gap_dom * (n_facets - 1)) / n_facets
+  gap_dom <- 0.001
   
-  # enforce same width for each facet
+  # max fraction of the plot width any single facet can take
+  max_panel_w <- 0.22  
+  
+  panel_w_raw <- (1 - gap_dom * (n_facets - 1)) / n_facets
+  panel_w <- min(panel_w_raw, max_panel_w)
+  
+  total_w <- n_facets * panel_w + (n_facets - 1) * gap_dom
+  left_pad <- (1 - total_w) / 2
+  
   for (i in seq_len(n_facets)) {
     ax <- if (i == 1) "xaxis" else paste0("xaxis", i)
-    left  <- (i - 1) * (panel_w + gap_dom)
+    left  <- left_pad + (i - 1) * (panel_w + gap_dom)
     right <- left + panel_w
     p_plotly$x$layout[[ax]]$domain <- c(left, right)
   }
   
   # recenter facet titles
-  mids <- (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
+  mids <- left_pad + (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
   anns <- p_plotly$x$layout$annotations
   
   for (i in seq_len(n_facets)) {
@@ -278,7 +285,7 @@ make_msa_plotly <- function(taxon, varRegions,
 
 
 
-make_msa_plotly("test", "V1regions", "~/RADexplorer/testdata/exampleRADq.csv", "~/RADexplorer/testdata/unique.csv", TRUE)
+#make_msa_plotly("test", "V1regions", "~/RADexplorer/testdata/exampleRADq.csv", "~/RADexplorer/testdata/unique.csv", TRUE)
 
 
 
