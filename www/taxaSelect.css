@@ -8,4 +8,4 @@
 /* selectize dropdown rendering */
 .selectize-control { overflow: visible !important; }
 .selectize-dropdown { z-index: 9999 !important; }
-.selectize-dropdown-content { max-height: 50vh !important; }
+.selectize-dropdown-content { max-height: 40vh !important; }

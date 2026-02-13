@@ -48,6 +48,28 @@ server <- function(input, output, session) {
     )
   })
   
+  observeEvent(input$selectGenus, {
+    req(screen() == "taxaSelect")
+    
+    selected_genera <- input$selectGenus
+    n_genera <- if (is.null(selected_genera)) 0 else length(selected_genera)
+    
+    if (n_genera == 0) return()
+    
+    line_genus <- sub("\\s.*$", "", genus_species)
+    sp <- genus_species[line_genus %in% selected_genera]
+    n_members <- length(unique(sp))
+    
+    genus_word <- if (n_genera == 1) "genus" else "genera"
+    label <- if (n_members == 1) {
+      paste0("Analyze the only member of the selected ", genus_word)
+    } else {
+      paste0("Analyze all ", n_members, " members of the selected ", genus_word)
+    }
+    
+    updateCheckboxInput(session, "entireGenus", label = label, value = FALSE)
+  }, ignoreInit = TRUE)
+  
   observeEvent(input$continue, {
     req(input$mode)
     if (input$mode == "RADlib") screen("taxaSelect")
@@ -153,7 +175,15 @@ server <- function(input, output, session) {
                 options = list(placeholder = "Type to search", maxOptions = 10000),
                 width = "100%"
               ),
-              checkboxInput("entireGenus", "Analyze all members of the selected genus or genera", TRUE, width = "auto"),
+              conditionalPanel(
+                condition = "input.selectGenus && input.selectGenus.length > 0",
+                checkboxInput(
+                  "entireGenus",
+                  "",
+                  TRUE,
+                  width = "auto"
+                )
+              ),
               conditionalPanel(
                 condition = "input.entireGenus == false",
                 div(
