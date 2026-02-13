@@ -79,7 +79,7 @@ server <- function(input, output, session) {
         div(
           style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
           card(
-            h4("Welcome to RADexplorer!", style = "text-decoration: underline;"),
+            h4("Welcome to RADexplorer!"),
             p("Would you like to use native RADlib or upload your own database?"),
             radioButtons(
               "mode", label = NULL,
