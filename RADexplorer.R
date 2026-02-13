@@ -11,7 +11,11 @@ genus_species <- readLines("testdata/Genusspecies.txt", warn = FALSE)
 genus_species <- trimws(genus_species)
 genus_species <- genus_species[nzchar(genus_species)]
 
-ui <- uiOutput("page")
+ui <- tagList(
+  includeCSS("www/taxaSelect.css"),
+  includeScript("www/taxaSelect.js"),
+  uiOutput("page")
+)
 
 server <- function(input, output, session) {
   
@@ -22,7 +26,7 @@ server <- function(input, output, session) {
     req(screen() == "taxaSelect")
     
     session$onFlushed(function() {
-      updateSelectizeInput(session, "selectGenus", choices = genus, server = TRUE)
+      updateSelectizeInput(session, "selectGenus", selected = "", choices = genus, server = TRUE)
     }, once = TRUE)
   })
   
@@ -30,8 +34,10 @@ server <- function(input, output, session) {
     req(screen() == "taxaSelect")
     req(input$selectGenus)
     
-    prefix <- paste0(input$selectGenus, " ")
-    sp <- genus_species[startsWith(genus_species, prefix)]
+    selected_genera <- input$selectGenus  
+    
+    line_genus <- sub("\\s.*$", "", genus_species)  
+    sp <- genus_species[line_genus %in% selected_genera]
     
     updateSelectizeInput(
       session,
@@ -138,29 +144,31 @@ server <- function(input, output, session) {
         div(
           style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
           card(
-            style = "width: min(1200px, 40vw); height: min(900px, 60vh);",
+            id = "taxaCard",
+            style = "width: min(1100px, 80vw); max-height: 90vh; overflow: visible;",
             card_body(
-              style = "height: 90%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;",
-              
+              style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
               selectizeInput(
-                "selectGenus",
-                "Select genus below:",
-                choices = NULL,
-                multiple = FALSE,
-                options = list(placeholder = "Type to search", maxOptions = 200)
+                "selectGenus", "Select genus or genera below:",
+                choices = NULL, multiple = TRUE,
+                options = list(placeholder = "Type to search", maxOptions = 200),
+                width = "100%"
               ),
-              
-              checkboxInput("entireGenus", "Analyze entire genus?", TRUE),
-              
+              checkboxInput("entireGenus", "Analyze all members of the selected genus or genera?", TRUE, width = "auto"),
               conditionalPanel(
                 condition = "input.entireGenus == false",
-                selectizeInput(
-                  "selectTaxa",
-                  "Select species below:",
-                  choices = NULL,
-                  multiple = TRUE,
-                  options = list(placeholder = "Type to search", maxOptions = 200,
-                                 closeAfterSelect = FALSE)
+                div(
+                  style = "flex: 0 1 700px; width: 100%;",
+                  selectizeInput(
+                    "selectTaxa", "Select species below:",
+                    choices = NULL, multiple = TRUE,
+                    options = list(
+                      placeholder = "Type to search",
+                      maxOptions = 200,
+                      closeAfterSelect = FALSE
+                    ),
+                    width = "100%"
+                  )
                 )
               ),
               div(

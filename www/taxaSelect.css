@@ -1,0 +1,11 @@
+/* allow selectize dropdown to escape card */
+#taxaCard .card-body,
+#taxaCard .bslib-card,
+#taxaCard .bslib-card .card-body {
+  overflow: visible !important;
+}
+
+/* selectize dropdown rendering */
+.selectize-control { overflow: visible !important; }
+.selectize-dropdown { z-index: 9999 !important; }
+.selectize-dropdown-content { max-height: 50vh !important; }
