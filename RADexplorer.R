@@ -237,7 +237,7 @@ server <- function(input, output, session) {
   
   # this is the creation of the radx visual - it is currently prompted by the user selecting how many variable regions to load
   msa_plot <- eventReactive(input$submit, {
-    req(input$mode == "radx")
+    req(input$mode == "RADlib")
     make_msa_plotly(taxon = input$taxon, varRegions = input$varRegions, highlight_unique = input$uniqueRegions)
   })
   
