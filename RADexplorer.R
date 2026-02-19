@@ -3,6 +3,7 @@ library(bslib)
 library(plotly)
 source("visualization.R")
 
+# these lines import the list of genus and species names for the dropdown menus
 genus <- readLines("testdata/genus.txt", warn = FALSE)
 genus <- trimws(genus)
 genus <- genus[nzchar(genus)]
@@ -11,17 +12,20 @@ genus_species <- readLines("testdata/Genusspecies.txt", warn = FALSE)
 genus_species <- trimws(genus_species)
 genus_species <- genus_species[nzchar(genus_species)]
 
+# UI
 ui <- tagList(
   includeCSS("www/taxaSelect.css"),
   includeScript("www/taxaSelect.js"),
   uiOutput("page")
 )
 
+# SERVER
 server <- function(input, output, session) {
   
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
   
+  # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
     req(screen() == "taxaSelect")
     
@@ -30,6 +34,7 @@ server <- function(input, output, session) {
     }, once = TRUE)
   })
   
+  # this puts the filtered species list into the drop down menu after the genus/genera are selected
   observeEvent(input$selectGenus, {
     req(screen() == "taxaSelect")
     req(input$selectGenus)
@@ -48,6 +53,8 @@ server <- function(input, output, session) {
     )
   })
   
+  # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
+  # simply for aesthetics
   observeEvent(input$selectGenus, {
     req(screen() == "taxaSelect")
     
@@ -70,32 +77,39 @@ server <- function(input, output, session) {
     updateCheckboxInput(session, "entireGenus", label = label, value = FALSE)
   }, ignoreInit = TRUE)
   
+  # this changes the selected screen based on whether the user is using RADlib or their own database
   observeEvent(input$continue, {
     req(input$mode)
     if (input$mode == "RADlib") screen("taxaSelect")
     if (input$mode == "upload") screen("upload")
   })
   
-  
+  # this is the event that takes the user back to the main menu
   observeEvent(input$backToMenu, {
     screen("menu")
   })
   
+  # this takes the user to radx
   observeEvent(input$continueWithTaxa, {
-    screen("radlib")
+    screen("radx")
   })
   
+  # this takes the user to the taxa select screen
   observeEvent(input$toTaxaSelect, {
     screen("taxaSelect")
   })
   
+  # this is if the user wants to use their own database - i've left a placeholder here for the time being
   observeEvent(input$continueWithFile, {
     req(input$altlib)
     screen("placeholder")  
   })
   
+  # this is the meat of the screen rendering
+  # it selects the screen that the user is seeing based on the variable above and renders it accordingly
   output$page <- renderUI({
     if (screen() == "menu") {
+      # main menu
       page_fillable(
         title = "RADexplorer",
         div(
@@ -112,16 +126,19 @@ server <- function(input, output, session) {
         )
       )
       
-    } else if (screen() == "radlib") {
+    } else if (screen() == "radx") {
+      # rad explorer menu
       page_sidebar(
         title = "RADx",
         sidebar = sidebar(
+          # variable region select
           checkboxGroupInput(
             "varRegions",
             "Select all 16S gene variable regions to include:",
             choices = setNames(paste0("V",1:9,"regions"), 1:9),
             selected = paste0("V",1:9,"regions")
           ),
+          # unique region view button
           checkboxInput(
             "uniqueRegions",
             label = "Unique region view",
@@ -144,6 +161,7 @@ server <- function(input, output, session) {
       )
       
     } else if (screen() == "upload") {
+      # this is the page for uploading a different database instead of radlib
       page_fillable(
         title = "Upload database file",
         div(
@@ -160,6 +178,7 @@ server <- function(input, output, session) {
         )
       )
     } else if (screen() == "taxaSelect") {
+      # taxa select menu
       page_fillable(
         title = "Select taxa to analyze",
         div(
@@ -169,12 +188,15 @@ server <- function(input, output, session) {
             style = "width: min(1100px, 80vw); max-height: 90vh; overflow: visible;",
             card_body(
               style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
+              # genus select
               selectizeInput(
                 "selectGenus", "Select genus or genera to analyze:",
                 choices = NULL, multiple = TRUE,
                 options = list(placeholder = "Type to search", maxOptions = 10000),
                 width = "100%"
               ),
+              # select all species button - displays how many total species are available
+              # only shows up after the user selects a genus or a genera
               conditionalPanel(
                 condition = "input.selectGenus && input.selectGenus.length > 0",
                 checkboxInput(
@@ -184,6 +206,7 @@ server <- function(input, output, session) {
                   width = "auto"
                 )
               ),
+              # species select - only shows up after you select a genus or genera
               conditionalPanel(
                 condition = "input.entireGenus == false",
                 div(
@@ -212,11 +235,13 @@ server <- function(input, output, session) {
     }
   })
   
+  # this is the creation of the radx visual - it is currently prompted by the user selecting how many variable regions to load
   msa_plot <- eventReactive(input$submit, {
-    req(input$mode == "RADlib")
+    req(input$mode == "radx")
     make_msa_plotly(taxon = input$taxon, varRegions = input$varRegions, highlight_unique = input$uniqueRegions)
   })
   
+  # outputs the plot to the card
   output$visual <- renderPlotly({
     req(input$submit > 0)
     msa_plot()
