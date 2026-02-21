@@ -26,6 +26,7 @@ server <- function(input, output, session) {
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("taxaSelect")
   
+  
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
     req(screen() == "taxaSelect")
@@ -199,10 +200,16 @@ server <- function(input, output, session) {
               div(
                 style = "display:flex; gap:12px; width:100%;",
                 h4("Welcome to RADexplorer!", style = "margin:0;"),
-                actionButton("backToMenu", "Back", style = "margin-left:auto;")
+                #actionButton("backToMenu", "Back", style = "margin-left:auto;")
               ),
               card(
-                p("Reference library: RADlib")
+                tags$label(`for` = "ref_lib", "Reference library:"),
+                tags$select(
+                  id = "ref_lib",
+                  class = "form-control",
+                  disabled = "disabled",
+                  tags$option(value = "RADlib", "RADlib", selected = "selected")
+                )
               ),
               card(
                 # genus select
