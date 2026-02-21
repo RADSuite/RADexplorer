@@ -76,8 +76,40 @@ server <- function(input, output, session) {
       paste0("Analyze all ", n_members, " members of the selected ", genus_word)
     }
     
-    updateCheckboxInput(session, "entireGenus", label = label, value = FALSE)
+    # sets the checkbox text, in italics
+    updateCheckboxInput(
+      session,
+      "entireGenus",
+      label = HTML(paste0("<i>", label, "</i>")),
+      value = FALSE
+    )
   }, ignoreInit = TRUE)
+  
+  # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
+  observeEvent(input$entireGenus, {
+    
+    selected_genera <- input$selectGenus
+    line_genus <- sub("\\s.*$", "", genus_species)
+    sp <- genus_species[line_genus %in% selected_genera]
+    
+    if (isTRUE(input$entireGenus)) {
+      updateSelectizeInput(
+        session,
+        "selectTaxa",
+        selected = sp,
+        choices = unique(sp),
+        server = TRUE
+      )
+    } else {
+      updateSelectizeInput(
+        session,
+        "selectTaxa",
+        selected = character(0),
+        choices = unique(sp),
+        server = TRUE
+      )
+    }
+  })
   
   # this activates the explore + download buttons on the taxaSelect page when the user has selected the taxa of interest
   observe({
@@ -191,10 +223,10 @@ server <- function(input, output, session) {
       page_fillable(
         title = "RADexplorer",
         div(
-          style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
+          style = "display:flex; align-items:flex-start; justify-content:center; padding-top:100px; padding-bottom:100px;",
           card(
             id = "taxaCard",
-            style = "width: min(1100px, 80vw); max-height: 90vh; overflow: visible;",
+            style = "width: min(1100px, 80vw); max-height: 250vh; overflow: visible;",
             card_body(
               style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
               div(
@@ -214,34 +246,31 @@ server <- function(input, output, session) {
                     disabled = "disabled",
                     # sets the width of the drop down button - a little neurotic, can be removed lol
                     style = "width: 160px; flex: 0 0 100px;",
-                    tags$option(value = "RADlib", "RADlib", selected = "selected")
+                    tags$option(value = "RADlib", "RADlib v1.0", selected = "selected")
                   )
                 )
               ),
               card(
-                # genus select
-                selectizeInput(
-                  "selectGenus", "Select genus or genera to analyze:",
-                  choices = NULL, multiple = TRUE,
-                  options = list(placeholder = "Type to search", maxOptions = 10000),
-                  width = "100%"
-                ),
-                # select all species button - displays how many total species are available
-                # only shows up after the user selects a genus or a genera
-                conditionalPanel(
-                  condition = "input.selectGenus && input.selectGenus.length > 0",
-                  checkboxInput(
-                    "entireGenus",
-                    "",
-                    TRUE,
-                    width = "auto"
-                  )
-                ),
-                # species select - only shows up after you select a genus or genera
-                conditionalPanel(
-                  condition = "input.entireGenus == false",
-                  div(
-                    style = "flex: 0 1 700px; width: 100%;",
+                div(
+                  style = "display:flex; flex-direction:column; gap:2px;",
+                  # genus selection
+                  selectizeInput(
+                    "selectGenus", "Select genus or genera to analyze:",
+                    choices = NULL, multiple = TRUE,
+                    options = list(placeholder = "Type to search", maxOptions = 10000),
+                    width = "100%"
+                  ),
+                  conditionalPanel(
+                    condition = "input.selectGenus && input.selectGenus.length > 0",
+                    div(
+                      style = "font-size: 13px; margin-top:-6px;",
+                      # use entire genus checkbox  - only shows up after you select a genus or genera
+                      checkboxInput("entireGenus", "Use entire genus", TRUE, width = "auto")
+                    )
+                  ),
+                  # species select - only shows up after you select a genus or genera
+                  conditionalPanel(
+                    condition = "input.selectGenus && input.selectGenus.length > 0",
                     selectizeInput(
                       "selectTaxa", "Select species to analyze:",
                       choices = NULL, multiple = TRUE,
@@ -255,6 +284,7 @@ server <- function(input, output, session) {
                   )
                 )
               ),
+                
               fluidPage(
                 useShinyjs(),
                 div(
