@@ -1,6 +1,7 @@
 library(shiny)
 library(bslib)
 library(plotly)
+library(shinyjs)
 source("visualization.R")
 
 # these lines import the list of genus and species names for the dropdown menus
@@ -23,7 +24,7 @@ ui <- tagList(
 server <- function(input, output, session) {
   
   # this keeps track of which menu screen the user is on
-  screen <- reactiveVal("menu")
+  screen <- reactiveVal("taxaSelect")
   
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
@@ -76,6 +77,13 @@ server <- function(input, output, session) {
     
     updateCheckboxInput(session, "entireGenus", label = label, value = FALSE)
   }, ignoreInit = TRUE)
+  
+  # this activates the explore + download buttons on the taxaSelect page when the user has selected the taxa of interest
+  observe({
+    ok <- length(input$selectGenus) > 0 && length(input$selectTaxa) > 0
+    shinyjs::toggleState("download", condition = ok)
+    shinyjs::toggleState("continueWithTaxa", condition = ok)
+  })
   
   # this changes the selected screen based on whether the user is using RADlib or their own database
   observeEvent(input$continue, {
@@ -180,7 +188,7 @@ server <- function(input, output, session) {
     } else if (screen() == "taxaSelect") {
       # taxa select menu
       page_fillable(
-        title = "Select taxa to analyze",
+        title = "RADexplorer",
         div(
           style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
           card(
@@ -188,45 +196,58 @@ server <- function(input, output, session) {
             style = "width: min(1100px, 80vw); max-height: 90vh; overflow: visible;",
             card_body(
               style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
-              # genus select
-              selectizeInput(
-                "selectGenus", "Select genus or genera to analyze:",
-                choices = NULL, multiple = TRUE,
-                options = list(placeholder = "Type to search", maxOptions = 10000),
-                width = "100%"
+              div(
+                style = "display:flex; gap:12px; width:100%;",
+                h4("Welcome to RADexplorer!", style = "margin:0;"),
+                actionButton("backToMenu", "Back", style = "margin-left:auto;")
               ),
-              # select all species button - displays how many total species are available
-              # only shows up after the user selects a genus or a genera
-              conditionalPanel(
-                condition = "input.selectGenus && input.selectGenus.length > 0",
-                checkboxInput(
-                  "entireGenus",
-                  "",
-                  TRUE,
-                  width = "auto"
-                )
+              card(
+                p("Reference library: RADlib")
               ),
-              # species select - only shows up after you select a genus or genera
-              conditionalPanel(
-                condition = "input.entireGenus == false",
-                div(
-                  style = "flex: 0 1 700px; width: 100%;",
-                  selectizeInput(
-                    "selectTaxa", "Select species to analyze:",
-                    choices = NULL, multiple = TRUE,
-                    options = list(
-                      placeholder = "Type to search",
-                      maxOptions = 10000,
-                      closeAfterSelect = FALSE
-                    ),
-                    width = "100%"
+              card(
+                # genus select
+                selectizeInput(
+                  "selectGenus", "Select genus or genera to analyze:",
+                  choices = NULL, multiple = TRUE,
+                  options = list(placeholder = "Type to search", maxOptions = 10000),
+                  width = "100%"
+                ),
+                # select all species button - displays how many total species are available
+                # only shows up after the user selects a genus or a genera
+                conditionalPanel(
+                  condition = "input.selectGenus && input.selectGenus.length > 0",
+                  checkboxInput(
+                    "entireGenus",
+                    "",
+                    TRUE,
+                    width = "auto"
+                  )
+                ),
+                # species select - only shows up after you select a genus or genera
+                conditionalPanel(
+                  condition = "input.entireGenus == false",
+                  div(
+                    style = "flex: 0 1 700px; width: 100%;",
+                    selectizeInput(
+                      "selectTaxa", "Select species to analyze:",
+                      choices = NULL, multiple = TRUE,
+                      options = list(
+                        placeholder = "Type to search",
+                        maxOptions = 10000,
+                        closeAfterSelect = FALSE
+                      ),
+                      width = "100%"
+                    )
                   )
                 )
               ),
-              div(
-                style = "display:flex; gap:12px; width:100%;",
-                actionButton("backToMenu", "Back", style = "flex:1;"),
-                actionButton("continueWithTaxa", "Continue", style = "flex:1;")
+              fluidPage(
+                useShinyjs(),
+                div(
+                  style = "display:flex; gap:12px; width:100%;",
+                  actionButton("download", "Download", style = "flex:1;"),
+                  actionButton("continueWithTaxa", "Continue", style = "flex:1;")
+                )
               )
             )
           )
