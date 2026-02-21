@@ -212,6 +212,7 @@ server <- function(input, output, session) {
                     id = "ref_lib",
                     class = "form-control",
                     disabled = "disabled",
+                    # sets the width of the drop down button - a little neurotic, can be removed lol
                     style = "width: 160px; flex: 0 0 100px;",
                     tags$option(value = "RADlib", "RADlib", selected = "selected")
                   )
