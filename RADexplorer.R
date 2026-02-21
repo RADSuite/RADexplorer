@@ -202,13 +202,19 @@ server <- function(input, output, session) {
                 h4("Welcome to RADexplorer!", style = "margin:0;"),
                 #actionButton("backToMenu", "Back", style = "margin-left:auto;")
               ),
+              # this is the Reference Library card
+              # it currently grays out the option to select the library and forces the user to select RADlib
               card(
-                tags$label(`for` = "ref_lib", "Reference library:"),
-                tags$select(
-                  id = "ref_lib",
-                  class = "form-control",
-                  disabled = "disabled",
-                  tags$option(value = "RADlib", "RADlib", selected = "selected")
+                div(
+                  style = "display:flex; align-items:center; gap:10px;",
+                  tags$label(`for` = "ref_lib", "Reference library:", style = "margin:0; white-space:nowrap;"),
+                  tags$select(
+                    id = "ref_lib",
+                    class = "form-control",
+                    disabled = "disabled",
+                    style = "width: 160px; flex: 0 0 100px;",
+                    tags$option(value = "RADlib", "RADlib", selected = "selected")
+                  )
                 )
               ),
               card(
