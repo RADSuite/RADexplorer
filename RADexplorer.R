@@ -85,6 +85,20 @@ server <- function(input, output, session) {
     )
   }, ignoreInit = TRUE)
   
+  # selected number of species note under the speciesSelection checkbox
+  output$speciesNote <- renderUI({
+    req(screen() == "taxaSelect")
+    
+    selected_species <- input$selectTaxa  
+    n_selected <- if (is.null(selected_species)) 0 else length(selected_species)
+    
+    HTML(paste0(
+      "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: <b>",
+      n_selected,
+      "</b></i></p>"
+    ))
+  })
+  
   # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
   observeEvent(input$entireGenus, {
     
@@ -280,7 +294,8 @@ server <- function(input, output, session) {
                         closeAfterSelect = FALSE
                       ),
                       width = "100%"
-                    )
+                    ),
+                    uiOutput("speciesNote")
                   )
                 )
               ),
