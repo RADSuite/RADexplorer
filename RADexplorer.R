@@ -24,14 +24,14 @@ ui <- tagList(
 server <- function(input, output, session) {
   
   # this keeps track of which menu screen the user is on
-  screen <- reactiveVal("taxaSelect")
+  screen <- reactiveVal("menu")
   
   # this keeps track of the user's selected taxa
   selected_taxa <- reactiveVal(NULL)
   
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
-    req(screen() == "taxaSelect")
+    req(screen() == "menu")
     
     session$onFlushed(function() {
       updateSelectizeInput(session, "selectGenus", selected = "", choices = genus, server = TRUE)
@@ -40,7 +40,7 @@ server <- function(input, output, session) {
   
   # this puts the filtered species list into the drop down menu after the genus/genera are selected
   observeEvent(input$selectGenus, {
-    req(screen() == "taxaSelect")
+    req(screen() == "menu")
     req(input$selectGenus)
     
     selected_genera <- input$selectGenus  
@@ -60,7 +60,7 @@ server <- function(input, output, session) {
   # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
   # simply for aesthetics
   observeEvent(input$selectGenus, {
-    req(screen() == "taxaSelect")
+    req(screen() == "menu")
     
     selected_genera <- input$selectGenus
     n_genera <- if (is.null(selected_genera)) 0 else length(selected_genera)
@@ -96,15 +96,15 @@ server <- function(input, output, session) {
   
   # selected number of species note under the speciesSelection checkbox
   output$speciesNote <- renderUI({
-    req(screen() == "taxaSelect")
-    
-    selected_species <- input$selectTaxa  
+    selected_species <- input$selectTaxa
     n_selected <- if (is.null(selected_species)) 0 else length(selected_species)
     
+    col <- if (n_selected >= 1 && n_selected <= 15) "green" else "red"
+    
     HTML(paste0(
-      "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: <b>",
-      n_selected,
-      "</b>.</i></p>"
+      "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: ",
+      "<span style='color:", col, "; font-weight:700;'>", n_selected, "</span>.",
+      "</i></p>"
     ))
   })
   
@@ -134,7 +134,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # this activates the explore + download buttons on the taxaSelect page when the user has selected the taxa of interest
+  # this activates the explore + download buttons on the menu page when the user has selected the taxa of interest
   observe({
     ok <- length(input$selectGenus) > 0 && length(input$selectTaxa) > 0 && length(input$selectTaxa) <= 15
     shinyjs::toggleState("download", condition = ok)
@@ -150,7 +150,7 @@ server <- function(input, output, session) {
   # this changes the selected screen based on whether the user is using RADlib or their own database
   observeEvent(input$continue, {
     req(input$mode)
-    if (input$mode == "RADlib") screen("taxaSelect")
+    if (input$mode == "RADlib") screen("menu")
     if (input$mode == "upload") screen("upload")
   })
   
@@ -165,8 +165,8 @@ server <- function(input, output, session) {
   })
   
   # this takes the user to the taxa select screen
-  observeEvent(input$toTaxaSelect, {
-    screen("taxaSelect")
+  observeEvent(input$tomenu, {
+    screen("menu")
   })
   
   # this is if the user wants to use their own database - i've left a placeholder here for the time being
@@ -178,25 +178,7 @@ server <- function(input, output, session) {
   # this is the meat of the screen rendering
   # it selects the screen that the user is seeing based on the variable above and renders it accordingly
   output$page <- renderUI({
-    if (screen() == "menu") {
-      # main menu
-      page_fillable(
-        title = "RADexplorer",
-        div(
-          style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
-          card(
-            h4("Welcome to RADexplorer!"),
-            p("Would you like to use native RADlib or upload your own database?"),
-            radioButtons(
-              "mode", label = NULL,
-              choices = c("RADlib" = "RADlib", "Upload my own" = "upload")
-            ),
-            actionButton("continue", "Continue")
-          )
-        )
-      )
-      
-    } else if (screen() == "radx") {
+    if (screen() == "radx") {
       # rad explorer menu
       page_sidebar(
         title = "RADx",
@@ -221,33 +203,13 @@ server <- function(input, output, session) {
           )
         ),
         card(
-          conditionalPanel("input.submit == 0",
-                           div("Select options in the sidebar, then click Submit.", style="padding:12px;")
-          ),
-          conditionalPanel("input.submit > 0",
+          conditionalPanel("input.continueWithTaxa > 0",
                            plotlyOutput("visual", height = "650px")
           )
         )
       )
       
-    } else if (screen() == "upload") {
-      # this is the page for uploading a different database instead of radlib
-      page_fillable(
-        title = "Upload database file",
-        div(
-          style = "height: calc(100vh - 80px); display:flex; align-items:center; justify-content:center;",
-          card(
-            h5("Upload file below"),
-            fileInput("altlib", label = NULL, buttonLabel = "Browse...", placeholder = "No file selected"),
-            div(
-              style = "display:flex; gap:12px; width:100%;",
-              actionButton("backToMenu", "Back", style = "flex:1;"),
-              actionButton("continueWithFile", "Continue", style = "flex:1;")
-            )
-          )
-        )
-      )
-    } else if (screen() == "taxaSelect") {
+    } else if (screen() == "menu") {
       # taxa select menu
       page_fillable(
         title = "RADexplorer",
@@ -333,8 +295,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # this is the creation of the radx visual - it is currently prompted by the user selecting how many variable regions to load
-  msa_plot <- eventReactive(input$submit, {
+  
+  msa_plot <- eventReactive(list(input$continueWithTaxa, input$submit), {
     make_msa_plotly(
       taxon = selected_taxa(),
       varRegions = input$varRegions,
@@ -344,7 +306,6 @@ server <- function(input, output, session) {
   
   # outputs the plot to the card
   output$visual <- renderPlotly({
-    req(input$submit > 0)
     msa_plot()
   })
 }
