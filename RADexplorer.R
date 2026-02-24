@@ -83,6 +83,15 @@ server <- function(input, output, session) {
       label = HTML(paste0("<i>", label, "</i>")),
       value = FALSE
     )
+    
+    if (n_members > 15) {
+      shinyjs::disable("entireGenus")
+      updateCheckboxInput(session, "entireGenus", value = FALSE)
+      return()
+    }
+    
+    
+      
   }, ignoreInit = TRUE)
   
   # selected number of species note under the speciesSelection checkbox
@@ -95,7 +104,7 @@ server <- function(input, output, session) {
     HTML(paste0(
       "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: <b>",
       n_selected,
-      "</b></i></p>"
+      "</b>.</i></p>"
     ))
   })
   
@@ -295,7 +304,10 @@ server <- function(input, output, session) {
                       ),
                       width = "100%"
                     ),
-                    uiOutput("speciesNote")
+                    div(
+                      style = "font-size: 13px; margin-top:-6px;",
+                      uiOutput("speciesNote")
+                    )
                   )
                 )
               ),
