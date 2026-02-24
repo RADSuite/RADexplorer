@@ -65,7 +65,16 @@ server <- function(input, output, session) {
     selected_genera <- input$selectGenus
     n_genera <- if (is.null(selected_genera)) 0 else length(selected_genera)
     
-    if (n_genera == 0) return()
+    if (length(selected_genera) == 0) {
+      updateCheckboxInput(
+        session,
+        "entireGenus",
+        label = HTML("<i>Analyze all members of the selected genus/genera</i>"),
+        value = FALSE
+      )
+      shinyjs::disable("entireGenus")
+      return()
+    }
     
     line_genus <- sub("\\s.*$", "", genus_species)
     sp <- genus_species[line_genus %in% selected_genera]
@@ -87,12 +96,18 @@ server <- function(input, output, session) {
     )
     
     # checks to see if its greater than the maximum. if so, disables the checkmark
-    if (n_members > 15) {
+    if (n_members > 15 || n_members == 0) {
       shinyjs::disable("entireGenus")
-      updateCheckboxInput(session, "entireGenus", value = FALSE)
-      return()
+    } else {
+      shinyjs::enable("entireGenus")
     }
+    
   }, ignoreInit = TRUE)
+  
+  observeEvent(screen(), {
+    shinyjs::disable("entireGenus")
+    updateCheckboxInput(session, "entireGenus", value = FALSE)
+  }, ignoreInit = FALSE)
   
   # selected number of species note under the speciesSelection checkbox
   output$speciesNote <- renderUI({
@@ -243,20 +258,30 @@ server <- function(input, output, session) {
               ),
               card(
                 div(
-                  style = "display:flex; flex-direction:column; gap:2px;",
+                  style = "display:flex; flex-direction:column; gap:0px;",
                   # genus selection
-                  selectizeInput(
-                    "selectGenus", "Select genus or genera to analyze:",
-                    choices = NULL, multiple = TRUE,
-                    options = list(placeholder = "Type to search", maxOptions = 10000),
-                    width = "100%"
-                  ),
-                  conditionalPanel(
-                    condition = "input.selectGenus && input.selectGenus.length > 0",
-                    div(
-                      style = "font-size: 13px; margin-top:-6px;",
-                      # use entire genus checkbox  - only shows up after you select a genus or genera
-                      checkboxInput("entireGenus", "Use entire genus", TRUE, width = "auto")
+                  tags$div(
+                    tags$label(
+                      `for` = "selectGenus",
+                      style = "display:block; margin-bottom:0px;",
+                      tags$div("Select genus or genera to analyze:"),
+                      tags$div(
+                        style = "font-size:13px; margin-top:0px;",
+                        class = "checkbox",
+                        tags$label(
+                          checkboxInput(
+                            "entireGenus",
+                            label = HTML("<i>Analyze all members of the selected genus</i>"),
+                            value = FALSE
+                          )
+                        )
+                      )
+                    ),
+                    selectizeInput(
+                      "selectGenus", label = NULL,
+                      choices = NULL, multiple = TRUE,
+                      options = list(placeholder = "Type to search", maxOptions = 10000),
+                      width = "100%"
                     )
                   ),
                   # species select - only shows up after you select a genus or genera
