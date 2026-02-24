@@ -26,6 +26,8 @@ server <- function(input, output, session) {
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("taxaSelect")
   
+  # this keeps track of the user's selected taxa
+  selected_taxa <- reactiveVal(NULL)
   
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
@@ -84,14 +86,12 @@ server <- function(input, output, session) {
       value = FALSE
     )
     
+    # checks to see if its greater than the maximum. if so, disables the checkmark
     if (n_members > 15) {
       shinyjs::disable("entireGenus")
       updateCheckboxInput(session, "entireGenus", value = FALSE)
       return()
     }
-    
-    
-      
   }, ignoreInit = TRUE)
   
   # selected number of species note under the speciesSelection checkbox
@@ -136,9 +136,15 @@ server <- function(input, output, session) {
   
   # this activates the explore + download buttons on the taxaSelect page when the user has selected the taxa of interest
   observe({
-    ok <- length(input$selectGenus) > 0 && length(input$selectTaxa) > 0
+    ok <- length(input$selectGenus) > 0 && length(input$selectTaxa) > 0 && length(input$selectTaxa) <= 15
     shinyjs::toggleState("download", condition = ok)
     shinyjs::toggleState("continueWithTaxa", condition = ok)
+  })
+  
+  # this sets the selectedTaxa variable with the users selections
+  observeEvent(input$continueWithTaxa, {
+    selected_taxa(input$selectTaxa)
+    screen("radx")
   })
   
   # this changes the selected screen based on whether the user is using RADlib or their own database
@@ -317,7 +323,7 @@ server <- function(input, output, session) {
                 div(
                   style = "display:flex; gap:12px; width:100%;",
                   actionButton("download", "Download", style = "flex:1;"),
-                  actionButton("continueWithTaxa", "Continue", style = "flex:1;")
+                  actionButton("continueWithTaxa", "Explore", style = "flex:1;")
                 )
               )
             )
@@ -329,8 +335,11 @@ server <- function(input, output, session) {
   
   # this is the creation of the radx visual - it is currently prompted by the user selecting how many variable regions to load
   msa_plot <- eventReactive(input$submit, {
-    req(input$mode == "RADlib")
-    make_msa_plotly(taxon = input$taxon, varRegions = input$varRegions, highlight_unique = input$uniqueRegions)
+    make_msa_plotly(
+      taxon = selected_taxa(),
+      varRegions = input$varRegions,
+      highlight_unique = input$uniqueRegions
+    )
   })
   
   # outputs the plot to the card
