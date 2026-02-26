@@ -5,20 +5,13 @@ library(shinyjs)
 source("visualization.R")
 
 # these lines import the list of genus and species names for the dropdown menus
-genus <- readLines("testdata/genus.txt", warn = FALSE)
+genus <- readLines("../testdata/genus.txt", warn = FALSE)
 genus <- trimws(genus)
 genus <- genus[nzchar(genus)]
 
-genus_species <- readLines("testdata/Genusspecies.txt", warn = FALSE)
+genus_species <- readLines("../testdata/Genusspecies.txt", warn = FALSE)
 genus_species <- trimws(genus_species)
 genus_species <- genus_species[nzchar(genus_species)]
-
-# UI
-ui <- tagList(
-  includeCSS("www/taxaSelect.css"),
-  includeScript("www/taxaSelect.js"),
-  uiOutput("page")
-)
 
 # SERVER
 server <- function(input, output, session) {
@@ -158,6 +151,8 @@ server <- function(input, output, session) {
   
   # this sets the selectedTaxa variable with the users selections
   observeEvent(input$continueWithTaxa, {
+    print(input$selectTaxa)
+    print(as.list(input$selectTaxa))
     selected_taxa(input$selectTaxa)
     screen("radx")
   })
@@ -334,5 +329,3 @@ server <- function(input, output, session) {
     msa_plot()
   })
 }
-
-shinyApp(ui, server)

@@ -1,6 +1,6 @@
 make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "testdata/exampleRADq.csv",
-                            unique_path = "testdata/unique.csv",
+                            RADq_path = "../testdata/exampleRADq.csv",
+                            unique_path = "../testdata/unique.csv",
                             highlight_unique = TRUE) {
   
   library(tidyverse)
