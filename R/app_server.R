@@ -5,11 +5,11 @@ library(shinyjs)
 source("visualization.R")
 
 # these lines import the list of genus and species names for the dropdown menus
-genus <- readLines("../testdata/genus.txt", warn = FALSE)
+genus <- readLines("../inst/app/taxa/genus.txt", warn = FALSE)
 genus <- trimws(genus)
 genus <- genus[nzchar(genus)]
 
-genus_species <- readLines("../testdata/Genusspecies.txt", warn = FALSE)
+genus_species <- readLines("../inst/app/taxa/Genusspecies.txt", warn = FALSE)
 genus_species <- trimws(genus_species)
 genus_species <- genus_species[nzchar(genus_species)]
 

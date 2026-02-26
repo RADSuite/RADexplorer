@@ -1,6 +1,6 @@
 # UI
 ui <- tagList(
-  includeCSS("../www/taxaSelect.css"),
-  includeScript("../www/taxaSelect.js"),
+  includeCSS("../inst/app/www/taxaSelect.css"),
+  includeScript("../inst/app/www/taxaSelect.js"),
   uiOutput("page")
 )
