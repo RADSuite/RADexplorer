@@ -183,6 +183,7 @@ make_msa_plotly <- function(
   # base ggplot
   p_msa <- ggplot()
 
+  # if detailed mode is turned on
   if (detailed) {
 
     # map each variable region to a numeric x position (same idea as non detailed)
@@ -245,7 +246,8 @@ make_msa_plotly <- function(
           data = RADqtiles_nonunique,
           aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
           alpha = alpha_nonunique,
-          color = "black", width = tile_w, height = 0.95
+          color = "black", width = tile_w, height = 0.95,
+          linewidth = 0.35
         )
     }
 
@@ -256,7 +258,8 @@ make_msa_plotly <- function(
           data = RADqtiles_unique,
           aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
           alpha = 1,
-          color = "black", width = tile_w, height = 0.95
+          color = "black", width = tile_w, height = 0.95,
+          linewidth = 0.35
         )
     }
 
@@ -293,8 +296,9 @@ make_msa_plotly <- function(
         geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE)
     }
 
-  } else {
 
+  } else {
+    # if detailed mode is turned off
     groups_plot <- groups %>%
       mutate(
         vregion = factor(vregion, levels = unique(vregion[order(parse_number(vregion))])),
@@ -323,15 +327,16 @@ make_msa_plotly <- function(
     seg_df <- bind_rows(seg_df, cap_df)
 
     p_msa <- ggplot() +
-      geom_tile(
-        data = groups_plot,
-        aes(x = as.numeric(vregion), y = y, fill = group),
-        width = tile_w, height = 1.5, color = "black"
-      ) +
       geom_segment(
         data = seg_df,
         aes(x = x, xend = xend, y = y, yend = y),
         linewidth = 3, color = "grey80"
+      ) +
+      geom_tile(
+        data = groups_plot,
+        aes(x = as.numeric(vregion), y = y, fill = group),
+        width = tile_w, height = 1.5, color = "black",
+        linewidth = 0.35
       ) +
       scale_x_continuous(
         breaks = seq_len(n_vr),
