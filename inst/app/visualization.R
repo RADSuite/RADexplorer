@@ -5,7 +5,7 @@ make_msa_plotly <- function(
     unique_path = NULL,
     groupings_path = NULL,
     highlight_unique = FALSE,
-    detailed = FALSE,
+    detailed = TRUE,
     package = "RADexplorer"
 ) {
 
@@ -193,6 +193,14 @@ make_msa_plotly <- function(
 
     n_vr <- length(vr_levels)
     tile_w <- 0.7
+    bracket_x <- 1 - tile_w/2 - 0.20
+    brackets_one <- copies_tbl %>%
+      transmute(
+        ymin = start,
+        ymax = end,
+        x    = bracket_x,
+        tick = 0.05
+      )
 
     RADqtiles_nonunique <- RADqtiles_nonunique %>%
       mutate(vx = match(variable_region_clean, vr_levels))
@@ -200,14 +208,27 @@ make_msa_plotly <- function(
     RADqtiles_unique <- RADqtiles_unique %>%
       mutate(vx = match(variable_region_clean, vr_levels))
 
-    # gray line segments between adjacent regions for every copy row
+    # gray line segments between adjacent regions for each species block
     seg_df <- tidyr::expand_grid(
       y = y_breaks$y_lab,
       i = seq_len(n_vr - 1)
     ) %>%
       transmute(y, x = i + tile_w/2, xend = i + 1 - tile_w/2)
 
-    # backbone first (or after, your choice)
+    # gray caps extending left of first region and right of last region
+    cap_df <- tidyr::expand_grid(
+      y = y_breaks$y_lab,
+      side = c("L", "R")
+    ) %>%
+      transmute(
+        y,
+        x    = ifelse(side == "L", 0.5, n_vr + tile_w/2),
+        xend = ifelse(side == "L", 1 - tile_w/2, n_vr + 0.5)
+      )
+
+    seg_df <- bind_rows(seg_df, cap_df)
+
+    # backbone
     p_msa <- p_msa +
       geom_segment(
         data = seg_df,
@@ -244,7 +265,9 @@ make_msa_plotly <- function(
       scale_x_continuous(
         breaks = seq_len(n_vr),
         labels = vr_levels,
-        position = "top"
+        position = "top",
+        limits = c(0.3, n_vr + 0.3),
+        expand = c(0, 0)
       ) +
       scale_y_continuous(
         breaks = y_breaks$y_lab,
@@ -282,8 +305,18 @@ make_msa_plotly <- function(
 
     n_vr <- nlevels(groups_plot$vregion)
     tile_w <- 0.7
+
     seg_df <- expand_grid(y = y_map$y, i = seq_len(n_vr - 1)) %>%
       transmute(y, x = i + tile_w/2, xend = i + 1 - tile_w/2)
+
+    cap_df <- expand_grid(y = y_map$y, side = c("L", "R")) %>%
+      transmute(
+        y,
+        x    = ifelse(side == "L", 0.5, n_vr + tile_w/2),
+        xend = ifelse(side == "L", 1 - tile_w/2, n_vr + 0.5)
+      )
+
+    seg_df <- bind_rows(seg_df, cap_df)
 
     p_msa <- ggplot() +
       geom_tile(
@@ -299,7 +332,9 @@ make_msa_plotly <- function(
       scale_x_continuous(
         breaks = seq_len(n_vr),
         labels = levels(groups_plot$vregion),
-        position = "top"
+        position = "top",
+        limits = c(0.5, n_vr + 0.5),
+        expand = c(0, 0)
       ) +
       scale_y_continuous(breaks = y_map$y, labels = rev(taxa_levels)) +
       theme_minimal() +
