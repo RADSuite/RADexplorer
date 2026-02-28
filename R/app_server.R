@@ -193,8 +193,8 @@ app_server <- function(input, output, session) {
     if (screen() == "radx") {
       # rad explorer menu
       page_sidebar(
-        title = "RADx",
         sidebar = sidebar(
+          h5("Options"),
           # variable region select
           checkboxGroupInput(
             "varRegions",
@@ -202,15 +202,19 @@ app_server <- function(input, output, session) {
             choices = setNames(paste0("V",1:9,"regions"), 1:9),
             selected = paste0("V",1:9,"regions")
           ),
+          input_switch(
+            "detailedView",
+            label = "Detailed View",
+            value = TRUE
+          ),
           # unique region view button
-          checkboxInput(
+          input_switch(
             "uniqueRegions",
             label = "Unique region view",
             value = FALSE
           ),
           div(
             style = "display:flex; gap:10px; width:100%;",
-            actionButton("submit", "Submit", style = "flex:1;"),
             actionButton("backToMenu", "Back", style = "flex:1;")
           )
         ),
@@ -318,7 +322,7 @@ app_server <- function(input, output, session) {
   })
   
   
-  msa_plot <- eventReactive(list(input$continueWithTaxa, input$submit), {
+  msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$uniqueRegions), {
     make_msa_plotly(
       taxon = selected_taxa(),
       varRegions = input$varRegions,

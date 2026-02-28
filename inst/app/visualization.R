@@ -1,11 +1,17 @@
 make_msa_plotly <- function(
     taxon,
-    varRegions,
+    varRegions = c("V1regions","V2regions","V3regions","V4regions","V5regions","V6regions","V7regions","V8regions","V9regions"),
     RADq_path = NULL,
     unique_path = NULL,
-    highlight_unique = TRUE,
+    groupings_path = NULL,
+    highlight_unique = FALSE,
+    detailed = FALSE,
     package = "RADexplorer"
 ) {
+
+  library(tidyverse)
+  library(plotly)
+  library(ggtext)
 
   #uses test data if no data is loaded
   if (is.null(RADq_path) || is.null(unique_path)) {
@@ -13,19 +19,20 @@ make_msa_plotly <- function(
     if (test_dir == "") stop("Could not find inst/testdata in installed package.")
     if (is.null(RADq_path))   RADq_path   <- file.path(test_dir, "exampleRADq.csv")
     if (is.null(unique_path)) unique_path <- file.path(test_dir, "unique.csv")
+    if (is.null(groupings_path)) groupings_path <- file.path(test_dir, "examplegroups_long.csv")
   }
-
-  library(tidyverse)
-  library(plotly)
-  library(ggtext)
 
   # read in RADq input
   RADq   <- readr::read_csv(RADq_path, show_col_types = FALSE)
   unique <- readr::read_csv(unique_path, show_col_types = FALSE)
+  groups <- readr::read_csv(groupings_path, show_col_types = FALSE)
 
   # user selected variable regions
   selectedVariableRegions <- varRegions
   selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
+
+  #####################################################################################
+  # detailed mode data prep (RADq tiles)
 
   # keep only selected regions + keep only the columns we actually use for plotting
   RADqtiles <- RADq %>%
@@ -106,7 +113,7 @@ make_msa_plotly <- function(
       select(-unique_flag)
 
     # rectangles that surround the entire species block in that facet
-    tile_w <- 0.95
+    tile_w <- 0.7
     rect_df <- unique_long %>%
       distinct(species, variable_region_clean) %>%
       left_join(copies_tbl %>% select(species, start, end), by = "species") %>%
@@ -127,18 +134,6 @@ make_msa_plotly <- function(
 
   #####################################################################################
   # reorder copies within each species, groups like copies together
-
-  RADqtiles <- RADqtiles %>%
-    mutate(seq_id_local = factor(gsub("^V[0-9]+", "", seq_id))) %>%
-    group_by(species, variable_region_clean) %>%
-    add_count(seq_id_local, name = "seq_n") %>%
-    arrange(desc(seq_n), seq_id_local, copy_num, .by_group = TRUE) %>%
-    mutate(
-      copy_num = row_number(),
-      y = as.numeric(start) + as.numeric(copy_num) - 1
-    ) %>%
-    ungroup() %>%
-    select(-seq_n)
 
   #makes hover text display "Species copy number"
   RADqtiles <- RADqtiles %>%
@@ -186,52 +181,131 @@ make_msa_plotly <- function(
   alpha_nonunique <- if (highlight_unique) 0.5 else 1
 
   # base ggplot
-  p_msa <- ggplot() + facet_grid(~ variable_region_clean, scales = "free_x")
+  p_msa <- ggplot()
 
-  # add the tiles that are non unique (if they exist)
-  if (nrow(RADqtiles_nonunique) > 0) {
+  if (detailed) {
+
+    # map each variable region to a numeric x position (same idea as non detailed)
+    vr_levels <- RADqtiles %>%
+      distinct(variable_region_clean) %>%
+      arrange(readr::parse_number(variable_region_clean), variable_region_clean) %>%
+      pull(variable_region_clean)
+
+    n_vr <- length(vr_levels)
+    tile_w <- 0.7
+
+    RADqtiles_nonunique <- RADqtiles_nonunique %>%
+      mutate(vx = match(variable_region_clean, vr_levels))
+
+    RADqtiles_unique <- RADqtiles_unique %>%
+      mutate(vx = match(variable_region_clean, vr_levels))
+
+    # gray line segments between adjacent regions for every copy row
+    seg_df <- tidyr::expand_grid(
+      y = y_breaks$y_lab,
+      i = seq_len(n_vr - 1)
+    ) %>%
+      transmute(y, x = i + tile_w/2, xend = i + 1 - tile_w/2)
+
+    # backbone first (or after, your choice)
     p_msa <- p_msa +
-      geom_tile(
-        data = RADqtiles_nonunique,
-        aes(x = x_one, y = y, fill = seq_id_local, text = hover_text),
-        alpha = alpha_nonunique,
-        color = "black", width = 0.95, height = 0.95
+      geom_segment(
+        data = seg_df,
+        aes(x = x, xend = xend, y = y, yend = y),
+        inherit.aes = FALSE,
+        linewidth = 3,
+        color = "grey80"
       )
-  }
 
-  # add the tiles that are unique (if they exist)
-  if (nrow(RADqtiles_unique) > 0) {
+    # add the tiles that are non unique (if they exist)
+    if (nrow(RADqtiles_nonunique) > 0) {
+      p_msa <- p_msa +
+        geom_tile(
+          data = RADqtiles_nonunique,
+          aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
+          alpha = alpha_nonunique,
+          color = "black", width = tile_w, height = 0.95
+        )
+    }
+
+    # add the tiles that are unique (if they exist)
+    if (nrow(RADqtiles_unique) > 0) {
+      p_msa <- p_msa +
+        geom_tile(
+          data = RADqtiles_unique,
+          aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
+          alpha = 1,
+          color = "black", width = tile_w, height = 0.95
+        )
+    }
+
+    # formatting + brackets
     p_msa <- p_msa +
-      geom_tile(
-        data = RADqtiles_unique,
-        aes(x = x_one, y = y, fill = seq_id_local, text = hover_text),
-        alpha = 1,
-        color = "black", width = 0.95, height = 0.95
+      scale_x_continuous(
+        breaks = seq_len(n_vr),
+        labels = vr_levels,
+        position = "top"
+      ) +
+      scale_y_continuous(
+        breaks = y_breaks$y_lab,
+        labels = paste0(
+          "<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", y_breaks$species, "</span>",
+          "<br><span style='font-size:6pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene copies</span>"
+        ),
+        trans = "reverse"
+      ) +
+      geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
+      geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
+      geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE) +
+      labs(x = NULL, y = NULL) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 90),
+        legend.position = "none",
+        axis.text.y = ggtext::element_markdown(),
+        strip.text = element_text(size = 12)
       )
-  }
 
-  # formatting + brackets
-  p_msa <- p_msa +
-    scale_x_continuous(breaks = 1, labels = "") +
-    scale_y_continuous(
-      breaks = y_breaks$y_lab,
-      labels = paste0(
-        "<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", y_breaks$species, "</span>",
-        "<br><span style='font-size:6pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene copies</span>"
-      ),
-      trans = "reverse"
-    ) +
-    geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
-    geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
-    geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE) +
-    labs(x = NULL, y = NULL) +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 90),
-      legend.position = "none",
-      axis.text.y = ggtext::element_markdown(),
-      strip.text = element_text(size = 12)
-    )
+  } else {
+
+    groups_plot <- groups %>%
+      mutate(
+        vregion = factor(vregion, levels = unique(vregion[order(parse_number(vregion))])),
+        taxa = as.character(taxa),
+        group = factor(group)
+      )
+
+    taxa_levels <- sort(unique(groups_plot$taxa))
+    y_map <- tibble(taxa = taxa_levels, y = seq_along(taxa_levels) + (seq_along(taxa_levels) - 1) * gap)
+
+    groups_plot <- left_join(groups_plot, y_map, by = "taxa")
+
+    n_vr <- nlevels(groups_plot$vregion)
+    tile_w <- 0.7
+    seg_df <- expand_grid(y = y_map$y, i = seq_len(n_vr - 1)) %>%
+      transmute(y, x = i + tile_w/2, xend = i + 1 - tile_w/2)
+
+    p_msa <- ggplot() +
+      geom_tile(
+        data = groups_plot,
+        aes(x = as.numeric(vregion), y = y, fill = group),
+        width = tile_w, height = 1.5, color = "black"
+      ) +
+      geom_segment(
+        data = seg_df,
+        aes(x = x, xend = xend, y = y, yend = y),
+        linewidth = 3, color = "grey80"
+      ) +
+      scale_x_continuous(
+        breaks = seq_len(n_vr),
+        labels = levels(groups_plot$vregion),
+        position = "top"
+      ) +
+      scale_y_continuous(breaks = y_map$y, labels = rev(taxa_levels)) +
+      theme_minimal() +
+      theme(legend.position = "none", panel.grid = element_blank()) +
+      labs(x = NULL, y = NULL)
+  }
 
   # add outline boxes for unique regions if toggled
   if (highlight_unique && nrow(rect_df) > 0) {
@@ -250,55 +324,15 @@ make_msa_plotly <- function(
       )
   }
 
-
   #####################################################################################
   # convert to plotly
 
   p_plotly <- ggplotly(p_msa, tooltip = c("text", "seq_id")) %>%
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
 
-  #####################################################################################
-  # fix formatting on facet titles, positions, etc
+  p_plotly <- p_plotly %>%
+    layout(xaxis = list(side = "top"))
 
-  facet_levels <- RADqtiles %>%
-    distinct(variable_region_clean) %>%
-    arrange(variable_region_clean) %>%
-    pull(variable_region_clean)
-
-  n_facets <- length(facet_levels)
-
-  gap_dom <- 0.001
-
-  # max fraction of the plot width any single facet can take
-  max_panel_w <- 0.22
-
-  panel_w_raw <- (1 - gap_dom * (n_facets - 1)) / n_facets
-  panel_w <- min(panel_w_raw, max_panel_w)
-
-  total_w <- n_facets * panel_w + (n_facets - 1) * gap_dom
-  left_pad <- (1 - total_w) / 2
-
-  for (i in seq_len(n_facets)) {
-    ax <- if (i == 1) "xaxis" else paste0("xaxis", i)
-    left  <- left_pad + (i - 1) * (panel_w + gap_dom)
-    right <- left + panel_w
-    p_plotly$x$layout[[ax]]$domain <- c(left, right)
-  }
-
-  # recenter facet titles
-  mids <- left_pad + (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
-  anns <- p_plotly$x$layout$annotations
-
-  for (i in seq_len(n_facets)) {
-    idx <- which(vapply(anns, function(a) (a$text == facet_levels[i]), logical(1)))
-    if (length(idx) == 1) {
-      anns[[idx]]$xref <- "paper"
-      anns[[idx]]$x <- mids[i]
-      anns[[idx]]$xanchor <- "center"
-    }
-  }
-
-  p_plotly$x$layout$annotations <- anns
 
   #####################################################################################
   # final output
@@ -311,7 +345,7 @@ make_msa_plotly <- function(
 
 
 
-#make_msa_plotly("test", "V1regions", "~/RADexplorer/inst/testdata/exampleRADq.csv", "~/RADexplorer/inst/testdata/unique.csv", FALSE)
+make_msa_plotly()
 
 
 
