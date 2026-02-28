@@ -45,8 +45,8 @@ make_msa_plotly <- function(
     ) %>%
     filter(!is.na(copy_num), !is.na(seq_id))
 
-  groups <- groups %>%
-    filter(vregion %in% selected_regions_clean)
+  #groups <- groups %>%
+  #  filter(vregion %in% selected_regions_clean)
 
   #####################################################################################
   # stack gene copies within each species, with gaps between species
@@ -183,6 +183,14 @@ make_msa_plotly <- function(
 
   alpha_nonunique <- if (highlight_unique) 0.5 else 1
 
+
+  vr_levels_all <- paste0("V", 1:9)
+  selected_vr <- selected_regions_clean
+  unselected_vr <- setdiff(vr_levels_all, selected_vr)
+
+
+
+
   # base ggplot
   p_msa <- ggplot()
 
@@ -190,12 +198,9 @@ make_msa_plotly <- function(
   if (detailed) {
 
     # map each variable region to a numeric x position (same idea as non detailed)
-    vr_levels <- RADqtiles %>%
-      distinct(variable_region_clean) %>%
-      arrange(readr::parse_number(variable_region_clean), variable_region_clean) %>%
-      pull(variable_region_clean)
-
+    vr_levels <- vr_levels_all
     n_vr <- length(vr_levels)
+
     tile_w <- 0.7
     bracket_x <- 1 - tile_w/2 - 0.20
     brackets_one <- copies_tbl %>%
@@ -234,12 +239,14 @@ make_msa_plotly <- function(
 
     # backbone
     p_msa <- p_msa +
-      geom_segment(
-        data = seg_df,
-        aes(x = x, xend = xend, y = y, yend = y),
+      geom_tile(
+        data = tibble(y = y_breaks$y_lab),
+        aes(x = (n_vr + 1) / 2, y = y),
         inherit.aes = FALSE,
-        linewidth = 3,
-        color = "grey80"
+        fill = "grey80",
+        color = NA,
+        width = n_vr,
+        height = 0.55
       )
 
     # add the tiles that are non unique (if they exist)
@@ -299,12 +306,11 @@ make_msa_plotly <- function(
         geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE)
     }
 
-
   } else {
     # if detailed mode is turned off
     groups_plot <- groups %>%
       mutate(
-        vregion = factor(vregion, levels = unique(vregion[order(parse_number(vregion))])),
+        vregion = factor(vregion, levels = vr_levels_all),
         taxa = as.character(taxa),
         group = factor(group)
       )
@@ -314,7 +320,7 @@ make_msa_plotly <- function(
 
     groups_plot <- left_join(groups_plot, y_map, by = "taxa")
 
-    n_vr <- nlevels(groups_plot$vregion)
+    n_vr <- length(vr_levels_all)
     tile_w <- 0.7
 
     seg_df <- expand_grid(y = y_map$y, i = seq_len(n_vr - 1)) %>%
@@ -329,21 +335,41 @@ make_msa_plotly <- function(
 
     seg_df <- bind_rows(seg_df, cap_df)
 
+    # small gray tiles for unselected regions
+    placeholder_df <- tidyr::expand_grid(
+      y = y_map$y,
+      vx = match(unselected_vr, vr_levels_all)
+    )
+
     p_msa <- ggplot() +
-      geom_segment(
-        data = seg_df,
-        aes(x = x, xend = xend, y = y, yend = y),
-        linewidth = 3, color = "grey80"
+      geom_tile(
+        data = tibble(y = y_map$y),
+        aes(x = (n_vr + 1) / 2, y = y),
+        inherit.aes = FALSE,
+        fill = "grey80",
+        color = NA,
+        width = n_vr,
+        height = 0.55
       ) +
       geom_tile(
-        data = groups_plot,
-        aes(x = as.numeric(vregion), y = y, fill = group),
+        data = placeholder_df,
+        aes(x = vx, y = y),
+        inherit.aes = FALSE,
+        fill = "grey80",
+        color = "black",
+        linewidth = 0.35,
+        width = tile_w * 0.55,
+        height = 0.55
+      ) +
+      geom_tile(
+        data = groups_plot %>% filter(vregion %in% selected_vr),
+        aes(x = match(vregion, vr_levels_all), y = y, fill = group),
         width = tile_w, height = 1.5, color = "black",
         linewidth = 0.35
       ) +
       scale_x_continuous(
         breaks = seq_len(n_vr),
-        labels = levels(groups_plot$vregion),
+        labels = vr_levels_all,
         position = "top",
         limits = c(0.3, n_vr + 0.5),
         expand = c(0, 0)
@@ -384,6 +410,23 @@ make_msa_plotly <- function(
   p_plotly <- p_plotly %>%
     layout(xaxis = list(side = "top"))
 
+  # keep column widths from stretching when few vregions are selected
+  max_col_domain <- 0.12   # smaller = narrower columns (tune this)
+  gap_dom <- 0.01          # spacing between columns (tune this)
+
+  total_w <- n_vr * max_col_domain + (n_vr - 1) * gap_dom
+  total_w <- min(total_w, 1)
+
+  left_pad <- (1 - total_w) / 2
+
+  p_plotly <- p_plotly %>%
+    layout(
+      xaxis = list(
+        side = "top",
+        domain = c(left_pad, left_pad + total_w)
+      )
+    )
+
 
   #####################################################################################
   # final output
@@ -396,7 +439,7 @@ make_msa_plotly <- function(
 
 
 
-make_msa_plotly()
+#make_msa_plotly()
 
 
 
