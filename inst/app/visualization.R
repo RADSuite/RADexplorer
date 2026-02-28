@@ -1,20 +1,32 @@
-make_msa_plotly <- function(taxon, varRegions,
-                            RADq_path = "../testdata/exampleRADq.csv",
-                            unique_path = "../testdata/unique.csv",
-                            highlight_unique = TRUE) {
-  
+make_msa_plotly <- function(
+    taxon,
+    varRegions,
+    RADq_path = NULL,
+    unique_path = NULL,
+    highlight_unique = TRUE,
+    package = "RADexplorer"
+) {
+
+  #uses test data if no data is loaded
+  if (is.null(RADq_path) || is.null(unique_path)) {
+    test_dir <- system.file("testdata", package = package)
+    if (test_dir == "") stop("Could not find inst/testdata in installed package.")
+    if (is.null(RADq_path))   RADq_path   <- file.path(test_dir, "exampleRADq.csv")
+    if (is.null(unique_path)) unique_path <- file.path(test_dir, "unique.csv")
+  }
+
   library(tidyverse)
   library(plotly)
   library(ggtext)
-  
+
   # read in RADq input
   RADq   <- readr::read_csv(RADq_path, show_col_types = FALSE)
   unique <- readr::read_csv(unique_path, show_col_types = FALSE)
-  
+
   # user selected variable regions
   selectedVariableRegions <- varRegions
   selected_regions_clean <- sub("regions$", "", selectedVariableRegions)
-  
+
   # keep only selected regions + keep only the columns we actually use for plotting
   RADqtiles <- RADq %>%
     filter(variable_region %in% selected_regions_clean) %>%
@@ -25,18 +37,18 @@ make_msa_plotly <- function(taxon, varRegions,
       seq_id
     ) %>%
     filter(!is.na(copy_num), !is.na(seq_id))
-  
+
   #####################################################################################
   # stack gene copies within each species, with gaps between species
-  
+
   gap <- 1.5  # vertical space between species blocks
-  
+
   # lock species ordering
   species_levels <- RADqtiles %>%
     distinct(species) %>%
     arrange(species) %>%
     pull(species)
-  
+
   # determines spacing between species based on how many gene copies there are
   copies_tbl <- RADqtiles %>%
     distinct(species, copy_num) %>%
@@ -48,7 +60,7 @@ make_msa_plotly <- function(taxon, varRegions,
       end   = start + n_copies - 1,
       y_lab = (start + end) / 2
     )
-  
+
   RADqtiles <- RADqtiles %>%
     mutate(
       x_one   = 1,  # placeholder x for each facet
@@ -58,19 +70,19 @@ make_msa_plotly <- function(taxon, varRegions,
     mutate(
       y = start + copy_num - 1
     )
-  
+
   # one label per species block
   y_breaks <- copies_tbl %>% select(species, y_lab, n_copies)
-  
+
   #####################################################################################
   # mark variable regions where unique (toggled)
-  
+
   # default: nothing is unique, no rectangles
   RADqtiles <- RADqtiles %>% mutate(is_unique_block = FALSE)
   rect_df <- tibble()
-  
+
   if (highlight_unique) {
-    
+
     unique_long <- unique %>%
       select(taxa, any_of(selected_regions_clean)) %>%
       pivot_longer(
@@ -84,7 +96,7 @@ make_msa_plotly <- function(taxon, varRegions,
         variable_region_clean,
         unique_flag = TRUE
       )
-    
+
     # tag tiles as unique by species x region
     RADqtiles <- RADqtiles %>%
       left_join(unique_long, by = c("species", "variable_region_clean")) %>%
@@ -92,7 +104,7 @@ make_msa_plotly <- function(taxon, varRegions,
         is_unique_block = coalesce(unique_flag, FALSE)
       ) %>%
       select(-unique_flag)
-    
+
     # rectangles that surround the entire species block in that facet
     tile_w <- 0.95
     rect_df <- unique_long %>%
@@ -105,17 +117,17 @@ make_msa_plotly <- function(taxon, varRegions,
         ymax = end + 0.475
       ) %>%
       filter(!is.na(start), !is.na(end))
-    
+
     rect_df <- rect_df %>%
       mutate(hover = paste0(
         "Taxon: ", species,
         "<br>Region: ", variable_region_clean
       ))
   }
-  
+
   #####################################################################################
   # reorder copies within each species, groups like copies together
-  
+
   RADqtiles <- RADqtiles %>%
     mutate(seq_id_local = factor(gsub("^V[0-9]+", "", seq_id))) %>%
     group_by(species, variable_region_clean) %>%
@@ -127,20 +139,20 @@ make_msa_plotly <- function(taxon, varRegions,
     ) %>%
     ungroup() %>%
     select(-seq_n)
-  
+
   #####################################################################################
   # determining coordinates for bracket on the left
-  
+
   tile_center <- 1
   tile_width  <- 0.95
-  
+
   # first find the leftmost facet
   first_facet <- RADqtiles %>%
     distinct(variable_region_clean) %>%
     arrange(variable_region_clean) %>%
     pull(variable_region_clean) %>%
     .[1]
-  
+
   # then bracket coords
   brackets_one <- copies_tbl %>%
     transmute(
@@ -150,18 +162,18 @@ make_msa_plotly <- function(taxon, varRegions,
       tick = 0.05,
       variable_region_clean = first_facet
     )
-  
+
   #####################################################################################
   # build ggplot
-  
+
   RADqtiles_unique <- RADqtiles %>% filter(is_unique_block)
   RADqtiles_nonunique <- RADqtiles %>% filter(!is_unique_block)
-  
+
   alpha_nonunique <- if (highlight_unique) 0.5 else 1
-  
+
   # base ggplot
   p_msa <- ggplot() + facet_grid(~ variable_region_clean, scales = "free_x")
-  
+
   # add the tiles that are non unique (if they exist)
   if (nrow(RADqtiles_nonunique) > 0) {
     p_msa <- p_msa +
@@ -172,7 +184,7 @@ make_msa_plotly <- function(taxon, varRegions,
         color = "black", width = 0.95, height = 0.95
       )
   }
-  
+
   # add the tiles that are unique (if they exist)
   if (nrow(RADqtiles_unique) > 0) {
     p_msa <- p_msa +
@@ -183,7 +195,7 @@ make_msa_plotly <- function(taxon, varRegions,
         color = "black", width = 0.95, height = 0.95
       )
   }
-  
+
   # formatting + brackets
   p_msa <- p_msa +
     scale_x_continuous(breaks = 1, labels = "") +
@@ -206,7 +218,7 @@ make_msa_plotly <- function(taxon, varRegions,
       axis.text.y = ggtext::element_markdown(),
       strip.text = element_text(size = 12)
     )
-  
+
   # add outline boxes for unique regions if toggled
   if (highlight_unique && nrow(rect_df) > 0) {
     p_msa <- p_msa +
@@ -223,46 +235,46 @@ make_msa_plotly <- function(taxon, varRegions,
         linewidth = .6
       )
   }
-  
-  
+
+
   #####################################################################################
   # convert to plotly
-  
+
   p_plotly <- ggplotly(p_msa, tooltip = c("text", "seq_id")) %>%
     layout(margin = list(l = 125, r = 30, t = 50, b = 40))
-  
+
   #####################################################################################
   # fix formatting on facet titles, positions, etc
-  
+
   facet_levels <- RADqtiles %>%
     distinct(variable_region_clean) %>%
     arrange(variable_region_clean) %>%
     pull(variable_region_clean)
-  
+
   n_facets <- length(facet_levels)
-  
+
   gap_dom <- 0.001
-  
+
   # max fraction of the plot width any single facet can take
-  max_panel_w <- 0.22  
-  
+  max_panel_w <- 0.22
+
   panel_w_raw <- (1 - gap_dom * (n_facets - 1)) / n_facets
   panel_w <- min(panel_w_raw, max_panel_w)
-  
+
   total_w <- n_facets * panel_w + (n_facets - 1) * gap_dom
   left_pad <- (1 - total_w) / 2
-  
+
   for (i in seq_len(n_facets)) {
     ax <- if (i == 1) "xaxis" else paste0("xaxis", i)
     left  <- left_pad + (i - 1) * (panel_w + gap_dom)
     right <- left + panel_w
     p_plotly$x$layout[[ax]]$domain <- c(left, right)
   }
-  
+
   # recenter facet titles
   mids <- left_pad + (seq_len(n_facets) - 1) * (panel_w + gap_dom) + panel_w / 2
   anns <- p_plotly$x$layout$annotations
-  
+
   for (i in seq_len(n_facets)) {
     idx <- which(vapply(anns, function(a) (a$text == facet_levels[i]), logical(1)))
     if (length(idx) == 1) {
@@ -271,12 +283,12 @@ make_msa_plotly <- function(taxon, varRegions,
       anns[[idx]]$xanchor <- "center"
     }
   }
-  
+
   p_plotly$x$layout$annotations <- anns
-  
+
   #####################################################################################
   # final output
-  
+
   p_plotly
 }
 

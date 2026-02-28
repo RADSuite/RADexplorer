@@ -1,20 +1,22 @@
-library(shiny)
-library(bslib)
-library(plotly)
-library(shinyjs)
-source("visualization.R")
-
-# these lines import the list of genus and species names for the dropdown menus
-genus <- readLines("../inst/app/taxa/genus.txt", warn = FALSE)
-genus <- trimws(genus)
-genus <- genus[nzchar(genus)]
-
-genus_species <- readLines("../inst/app/taxa/Genusspecies.txt", warn = FALSE)
-genus_species <- trimws(genus_species)
-genus_species <- genus_species[nzchar(genus_species)]
-
-# SERVER
-server <- function(input, output, session) {
+app_server <- function(input, output, session) {
+  base_dir <- system.file("app", package = "RADexplorer")
+  shiny::addResourcePath("app", base_dir)
+  
+  sys.source(file.path(base_dir, "visualization.R"), envir = environment())
+  
+  # these lines import the list of genus and species names for the dropdown menus
+  genus <- readLines(file.path(base_dir, "taxa", "genus.txt"), warn = FALSE)
+  genus <- trimws(genus)
+  genus <- genus[nzchar(genus)]
+  
+  genus_species <- readLines(file.path(base_dir, "taxa", "Genusspecies.txt"), warn = FALSE)
+  genus_species <- trimws(genus_species)
+  genus_species <- genus_species[nzchar(genus_species)]
+  
+  library(shiny)
+  library(bslib)
+  library(plotly)
+  library(shinyjs)
   
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
@@ -299,7 +301,7 @@ server <- function(input, output, session) {
                   )
                 )
               ),
-                
+              
               fluidPage(
                 useShinyjs(),
                 div(
@@ -328,4 +330,5 @@ server <- function(input, output, session) {
   output$visual <- renderPlotly({
     msa_plot()
   })
+  
 }

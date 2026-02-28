@@ -1,5 +1,5 @@
-library(shiny)
-source("app_ui.R")
-source("app_server.R")
-
-shinyApp(ui, server)
+#' Run the RADexplorer App
+#' @export
+run_app <- function() {
+  shiny::shinyApp(ui = app_ui(), server = app_server)
+}
