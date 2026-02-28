@@ -277,9 +277,6 @@ make_msa_plotly <- function(
         ),
         trans = "reverse"
       ) +
-      geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
-      geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
-      geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE) +
       labs(x = NULL, y = NULL) +
       theme_minimal() +
       theme(
@@ -287,6 +284,14 @@ make_msa_plotly <- function(
         axis.text.y = ggtext::element_markdown(),
         strip.text = element_text(size = 12)
       )
+
+    # temporarily turned off the brackets on the left
+    if (FALSE) {
+      p_msa <- p_msa +
+        geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
+        geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
+        geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE)
+    }
 
   } else {
 
@@ -345,7 +350,8 @@ make_msa_plotly <- function(
   }
 
   # add outline boxes for unique regions if toggled
-  if (highlight_unique && nrow(rect_df) > 0) {
+  ##### CURRENTLY DISABLED - BROKEN WITH LAST CHANGES #######
+  if (highlight_unique && nrow(rect_df) > 0 && FALSE) {
     p_msa <- p_msa +
       geom_rect(
         data = rect_df,
