@@ -326,7 +326,8 @@ app_server <- function(input, output, session) {
     make_msa_plotly(
       taxon = selected_taxa(),
       varRegions = input$varRegions,
-      highlight_unique = input$uniqueRegions
+      highlight_unique = input$uniqueRegions,
+      detailed = input$detailedView
     )
   })
   

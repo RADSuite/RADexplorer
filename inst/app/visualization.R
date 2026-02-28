@@ -5,7 +5,7 @@ make_msa_plotly <- function(
     unique_path = NULL,
     groupings_path = NULL,
     highlight_unique = FALSE,
-    detailed = TRUE,
+    detailed = FALSE,
     package = "RADexplorer"
 ) {
 
@@ -266,7 +266,7 @@ make_msa_plotly <- function(
         breaks = seq_len(n_vr),
         labels = vr_levels,
         position = "top",
-        limits = c(0.3, n_vr + 0.3),
+        limits = c(0.3, n_vr + 0.5),
         expand = c(0, 0)
       ) +
       scale_y_continuous(
@@ -283,7 +283,6 @@ make_msa_plotly <- function(
       labs(x = NULL, y = NULL) +
       theme_minimal() +
       theme(
-        axis.text.x = element_text(angle = 90),
         legend.position = "none",
         axis.text.y = ggtext::element_markdown(),
         strip.text = element_text(size = 12)
@@ -333,10 +332,13 @@ make_msa_plotly <- function(
         breaks = seq_len(n_vr),
         labels = levels(groups_plot$vregion),
         position = "top",
-        limits = c(0.5, n_vr + 0.5),
+        limits = c(0.3, n_vr + 0.5),
         expand = c(0, 0)
       ) +
-      scale_y_continuous(breaks = y_map$y, labels = rev(taxa_levels)) +
+      scale_y_continuous(
+        breaks = y_map$y,
+        labels = paste0("<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", rev(taxa_levels), "</span>")
+      ) +
       theme_minimal() +
       theme(legend.position = "none", panel.grid = element_blank()) +
       labs(x = NULL, y = NULL)
