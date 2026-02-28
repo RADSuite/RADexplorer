@@ -140,6 +140,20 @@ make_msa_plotly <- function(
     ungroup() %>%
     select(-seq_n)
 
+  #makes hover text display "Species copy number"
+  RADqtiles <- RADqtiles %>%
+    mutate(seq_id_local = factor(gsub("^V[0-9]+", "", seq_id))) %>%
+    group_by(species, variable_region_clean) %>%
+    add_count(seq_id_local, name = "seq_n") %>%
+    arrange(desc(seq_n), seq_id_local, copy_num, .by_group = TRUE) %>%
+    mutate(
+      copy_num = row_number(),
+      y = as.numeric(start) + as.numeric(copy_num) - 1,
+      hover_text = paste0(species, " copy number ", copy_num)
+    ) %>%
+    ungroup() %>%
+    select(-seq_n)
+
   #####################################################################################
   # determining coordinates for bracket on the left
 
@@ -179,7 +193,7 @@ make_msa_plotly <- function(
     p_msa <- p_msa +
       geom_tile(
         data = RADqtiles_nonunique,
-        aes(x = x_one, y = y, fill = seq_id_local),
+        aes(x = x_one, y = y, fill = seq_id_local, text = hover_text),
         alpha = alpha_nonunique,
         color = "black", width = 0.95, height = 0.95
       )
@@ -190,7 +204,7 @@ make_msa_plotly <- function(
     p_msa <- p_msa +
       geom_tile(
         data = RADqtiles_unique,
-        aes(x = x_one, y = y, fill = seq_id_local),
+        aes(x = x_one, y = y, fill = seq_id_local, text = hover_text),
         alpha = 1,
         color = "black", width = 0.95, height = 0.95
       )
@@ -297,7 +311,7 @@ make_msa_plotly <- function(
 
 
 
-#make_msa_plotly("test", "V1regions", "~/RADexplorer/testdata/exampleRADq.csv", "~/RADexplorer/testdata/unique.csv", TRUE)
+#make_msa_plotly("test", "V1regions", "~/RADexplorer/inst/testdata/exampleRADq.csv", "~/RADexplorer/inst/testdata/unique.csv", FALSE)
 
 
 
