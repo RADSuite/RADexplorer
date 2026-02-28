@@ -45,6 +45,9 @@ make_msa_plotly <- function(
     ) %>%
     filter(!is.na(copy_num), !is.na(seq_id))
 
+  groups <- groups %>%
+    filter(vregion %in% selected_regions_clean)
+
   #####################################################################################
   # stack gene copies within each species, with gaps between species
 
