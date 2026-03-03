@@ -73,7 +73,7 @@ make_msa_plotly <- function(
 
   RADqtiles <- RADqtiles %>%
     mutate(
-      x_one   = 1,  # placeholder x for each facet
+      x_one   = 1,
       species = factor(species, levels = species_levels)
     ) %>%
     left_join(copies_tbl %>% select(species, start), by = "species") %>%
@@ -114,25 +114,6 @@ make_msa_plotly <- function(
         is_unique_block = coalesce(unique_flag, FALSE)
       ) %>%
       select(-unique_flag)
-
-    # rectangles that surround the entire species block in that facet
-    tile_w <- 0.7
-    rect_df <- unique_long %>%
-      distinct(species, variable_region_clean) %>%
-      left_join(copies_tbl %>% select(species, start, end), by = "species") %>%
-      mutate(
-        xmin = 1 - tile_w / 2,
-        xmax = 1 + tile_w / 2,
-        ymin = start - 0.475,
-        ymax = end + 0.475
-      ) %>%
-      filter(!is.na(start), !is.na(end))
-
-    rect_df <- rect_df %>%
-      mutate(hover = paste0(
-        "Taxon: ", species,
-        "<br>Region: ", variable_region_clean
-      ))
   }
 
   #####################################################################################
@@ -153,29 +134,6 @@ make_msa_plotly <- function(
     select(-seq_n)
 
   #####################################################################################
-  # determining coordinates for bracket on the left
-
-  tile_center <- 1
-  tile_width  <- 0.95
-
-  # first find the leftmost facet
-  first_facet <- RADqtiles %>%
-    distinct(variable_region_clean) %>%
-    arrange(variable_region_clean) %>%
-    pull(variable_region_clean) %>%
-    .[1]
-
-  # then bracket coords
-  brackets_one <- copies_tbl %>%
-    transmute(
-      ymin = start,
-      ymax = end,
-      x    = tile_center - tile_width/2 - 0.10,
-      tick = 0.05,
-      variable_region_clean = first_facet
-    )
-
-  #####################################################################################
   # build ggplot
 
   RADqtiles_unique <- RADqtiles %>% filter(is_unique_block)
@@ -187,8 +145,6 @@ make_msa_plotly <- function(
   vr_levels_all <- paste0("V", 1:9)
   selected_vr <- selected_regions_clean
   unselected_vr <- setdiff(vr_levels_all, selected_vr)
-
-
 
 
   # base ggplot
@@ -273,7 +229,7 @@ make_msa_plotly <- function(
         )
     }
 
-    # formatting + brackets
+    # formatting
     p_msa <- p_msa +
       scale_x_continuous(
         breaks = seq_len(n_vr),
@@ -297,14 +253,6 @@ make_msa_plotly <- function(
         axis.text.y = ggtext::element_markdown(),
         strip.text = element_text(size = 12)
       )
-
-    # temporarily turned off the brackets on the left
-    if (FALSE) {
-      p_msa <- p_msa +
-        geom_segment(data = brackets_one, aes(x = x, xend = x, y = ymin, yend = ymax), inherit.aes = FALSE) +
-        geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymax, yend = ymax), inherit.aes = FALSE) +
-        geom_segment(data = brackets_one, aes(x = x, xend = x + tick, y = ymin, yend = ymin), inherit.aes = FALSE)
-    }
 
   } else {
     # if detailed mode is turned off
@@ -383,23 +331,6 @@ make_msa_plotly <- function(
       labs(x = NULL, y = NULL)
   }
 
-  # add outline boxes for unique regions if toggled
-  ##### CURRENTLY DISABLED - BROKEN WITH LAST CHANGES #######
-  if (highlight_unique && nrow(rect_df) > 0 && FALSE) {
-    p_msa <- p_msa +
-      geom_rect(
-        data = rect_df,
-        aes(
-          xmin = xmin, xmax = xmax,
-          ymin = ymin, ymax = ymax,
-          text = hover
-        ),
-        inherit.aes = FALSE,
-        color = "black",
-        fill = NA,
-        linewidth = .6
-      )
-  }
 
   #####################################################################################
   # convert to plotly
@@ -409,23 +340,6 @@ make_msa_plotly <- function(
 
   p_plotly <- p_plotly %>%
     layout(xaxis = list(side = "top"))
-
-  # keep column widths from stretching when few vregions are selected
-  max_col_domain <- 0.12   # smaller = narrower columns (tune this)
-  gap_dom <- 0.01          # spacing between columns (tune this)
-
-  total_w <- n_vr * max_col_domain + (n_vr - 1) * gap_dom
-  total_w <- min(total_w, 1)
-
-  left_pad <- (1 - total_w) / 2
-
-  p_plotly <- p_plotly %>%
-    layout(
-      xaxis = list(
-        side = "top",
-        domain = c(left_pad, left_pad + total_w)
-      )
-    )
 
 
   #####################################################################################
