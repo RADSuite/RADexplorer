@@ -283,13 +283,8 @@ make_msa_plotly <- function(
 
     seg_df <- bind_rows(seg_df, cap_df)
 
-    # small gray tiles for unselected regions
-    placeholder_df <- tidyr::expand_grid(
-      y = y_map$y,
-      vx = match(unselected_vr, vr_levels_all)
-    )
-
     p_msa <- ggplot() +
+      # backbone
       geom_tile(
         data = tibble(y = y_map$y),
         aes(x = (n_vr + 1) / 2, y = y),
@@ -297,24 +292,16 @@ make_msa_plotly <- function(
         fill = "grey80",
         color = NA,
         width = n_vr,
-        height = 0.55
+        height = 0.25
       ) +
-      geom_tile(
-        data = placeholder_df,
-        aes(x = vx, y = y),
-        inherit.aes = FALSE,
-        fill = "grey80",
-        color = "black",
-        linewidth = 0.35,
-        width = tile_w * 0.55,
-        height = 0.55
-      ) +
+      # vregion blocks
       geom_tile(
         data = groups_plot %>% filter(vregion %in% selected_vr),
         aes(x = match(vregion, vr_levels_all), y = y, fill = group),
         width = tile_w, height = 1.5, color = "black",
         linewidth = 0.35
       ) +
+      # x axis formatting
       scale_x_continuous(
         breaks = seq_len(n_vr),
         labels = vr_levels_all,
@@ -322,6 +309,7 @@ make_msa_plotly <- function(
         limits = c(0.3, n_vr + 0.5),
         expand = c(0, 0)
       ) +
+      # y axis formatting
       scale_y_continuous(
         breaks = y_map$y,
         labels = paste0("<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", rev(taxa_levels), "</span>")
