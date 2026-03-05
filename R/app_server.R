@@ -1,48 +1,54 @@
 app_server <- function(input, output, session) {
   base_dir <- system.file("app", package = "RADexplorer")
   shiny::addResourcePath("app", base_dir)
-  
+
   sys.source(file.path(base_dir, "visualization.R"), envir = environment())
-  
+
   # these lines import the list of genus and species names for the dropdown menus
   genus <- readLines(file.path(base_dir, "taxa", "genus.txt"), warn = FALSE)
   genus <- trimws(genus)
   genus <- genus[nzchar(genus)]
-  
+
   genus_species <- readLines(file.path(base_dir, "taxa", "Genusspecies.txt"), warn = FALSE)
   genus_species <- trimws(genus_species)
   genus_species <- genus_species[nzchar(genus_species)]
-  
+
   library(shiny)
   library(bslib)
   library(plotly)
   library(shinyjs)
-  
+
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
-  
+
   # this keeps track of the user's selected taxa
   selected_taxa <- reactiveVal(NULL)
-  
+
+  # this keeps track of the user's selected variable regions
+  selected_vregions <- reactiveVal(c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"))
+
+  # this keeps track of the RADq dataframe that is returned from RADalign
+  RADq <- reactiveVal(NULL)
+
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
     req(screen() == "menu")
-    
+
     session$onFlushed(function() {
       updateSelectizeInput(session, "selectGenus", selected = "", choices = genus, server = TRUE)
     }, once = TRUE)
   })
-  
+
   # this puts the filtered species list into the drop down menu after the genus/genera are selected
   observeEvent(input$selectGenus, {
     req(screen() == "menu")
     req(input$selectGenus)
-    
-    selected_genera <- input$selectGenus  
-    
-    line_genus <- sub("\\s.*$", "", genus_species)  
+
+    selected_genera <- input$selectGenus
+
+    line_genus <- sub("\\s.*$", "", genus_species)
     sp <- genus_species[line_genus %in% selected_genera]
-    
+
     updateSelectizeInput(
       session,
       "selectTaxa",
@@ -51,15 +57,15 @@ app_server <- function(input, output, session) {
       server = TRUE
     )
   })
-  
+
   # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
   # simply for aesthetics
   observeEvent(input$selectGenus, {
     req(screen() == "menu")
-    
+
     selected_genera <- input$selectGenus
     n_genera <- if (is.null(selected_genera)) 0 else length(selected_genera)
-    
+
     if (length(selected_genera) == 0) {
       updateCheckboxInput(
         session,
@@ -70,18 +76,18 @@ app_server <- function(input, output, session) {
       shinyjs::disable("entireGenus")
       return()
     }
-    
+
     line_genus <- sub("\\s.*$", "", genus_species)
     sp <- genus_species[line_genus %in% selected_genera]
     n_members <- length(unique(sp))
-    
+
     genus_word <- if (n_genera == 1) "genus" else "genera"
     label <- if (n_members == 1) {
       paste0("Analyze the only member of the selected ", genus_word)
     } else {
       paste0("Analyze all ", n_members, " members of the selected ", genus_word)
     }
-    
+
     # sets the checkbox text, in italics
     updateCheckboxInput(
       session,
@@ -89,42 +95,42 @@ app_server <- function(input, output, session) {
       label = HTML(paste0("<i>", label, "</i>")),
       value = FALSE
     )
-    
+
     # checks to see if its greater than the maximum. if so, disables the checkmark
     if (n_members > 15 || n_members == 0) {
       shinyjs::disable("entireGenus")
     } else {
       shinyjs::enable("entireGenus")
     }
-    
+
   }, ignoreInit = TRUE)
-  
+
   observeEvent(screen(), {
     shinyjs::disable("entireGenus")
     updateCheckboxInput(session, "entireGenus", value = FALSE)
   }, ignoreInit = FALSE)
-  
+
   # selected number of species note under the speciesSelection checkbox
   output$speciesNote <- renderUI({
     selected_species <- input$selectTaxa
     n_selected <- if (is.null(selected_species)) 0 else length(selected_species)
-    
+
     col <- if (n_selected >= 1 && n_selected <= 15) "green" else "red"
-    
+
     HTML(paste0(
       "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: ",
       "<span style='color:", col, "; font-weight:700;'>", n_selected, "</span>.",
       "</i></p>"
     ))
   })
-  
+
   # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
   observeEvent(input$entireGenus, {
-    
+
     selected_genera <- input$selectGenus
     line_genus <- sub("\\s.*$", "", genus_species)
     sp <- genus_species[line_genus %in% selected_genera]
-    
+
     if (isTRUE(input$entireGenus)) {
       updateSelectizeInput(
         session,
@@ -143,50 +149,62 @@ app_server <- function(input, output, session) {
       )
     }
   })
-  
+
   # this activates the explore + download buttons on the menu page when the user has selected the taxa of interest
   observe({
     ok <- length(input$selectGenus) > 0 && length(input$selectTaxa) > 0 && length(input$selectTaxa) <= 15
     shinyjs::toggleState("download", condition = ok)
     shinyjs::toggleState("continueWithTaxa", condition = ok)
   })
-  
+
   # this sets the selectedTaxa variable with the users selections
   observeEvent(input$continueWithTaxa, {
-    print(input$selectTaxa)
-    print(as.list(input$selectTaxa))
+    #print(input$selectTaxa)
+    #print(as.list(input$selectTaxa))
     selected_taxa(input$selectTaxa)
+    #print("Selected Taxa:")
+    #print(selected_taxa())
+
+    ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
+    #RADq(RADalign::getSequences(selected_taxa())
+    ##########                                                                      ############
+
     screen("radx")
   })
-  
+
+  # this sets the selected_vregions variable with the users selections
+  observeEvent(input$varRegions, {
+    selected_vregions(input$varRegions)
+
+    ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
+    #RADq(RADalign::selectVRegions(selected_vregions(), TRUE))
+    ##########                                                                      ############
+
+
+  })
+
   # this changes the selected screen based on whether the user is using RADlib or their own database
   observeEvent(input$continue, {
     req(input$mode)
     if (input$mode == "RADlib") screen("menu")
     if (input$mode == "upload") screen("upload")
   })
-  
+
   # this is the event that takes the user back to the main menu
   observeEvent(input$backToMenu, {
     screen("menu")
   })
-  
+
   # this takes the user to radx
   observeEvent(input$continueWithTaxa, {
     screen("radx")
   })
-  
+
   # this takes the user to the taxa select screen
   observeEvent(input$tomenu, {
     screen("menu")
   })
-  
-  # this is if the user wants to use their own database - i've left a placeholder here for the time being
-  observeEvent(input$continueWithFile, {
-    req(input$altlib)
-    screen("placeholder")  
-  })
-  
+
   # this is the meat of the screen rendering
   # it selects the screen that the user is seeing based on the variable above and renders it accordingly
   output$page <- renderUI({
@@ -199,8 +217,8 @@ app_server <- function(input, output, session) {
           checkboxGroupInput(
             "varRegions",
             "Select all 16S gene variable regions to include:",
-            choices = setNames(paste0("V",1:9,"regions"), 1:9),
-            selected = paste0("V",1:9,"regions")
+            choices = setNames(paste0("V",1:9), 1:9),
+            selected = paste0("V",1:9)
           ),
           input_switch(
             "detailedView",
@@ -224,7 +242,7 @@ app_server <- function(input, output, session) {
           )
         )
       )
-      
+
     } else if (screen() == "menu") {
       # taxa select menu
       page_fillable(
@@ -305,7 +323,7 @@ app_server <- function(input, output, session) {
                   )
                 )
               ),
-              
+
               fluidPage(
                 useShinyjs(),
                 div(
@@ -320,20 +338,20 @@ app_server <- function(input, output, session) {
       )
     }
   })
-  
-  
+
+
   msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$uniqueRegions), {
     make_msa_plotly(
       taxon = selected_taxa(),
-      varRegions = input$varRegions,
+      varRegions = selected_vregions(),
       highlight_unique = input$uniqueRegions,
       detailed = input$detailedView
     )
   })
-  
+
   # outputs the plot to the card
   output$visual <- renderPlotly({
     msa_plot()
   })
-  
+
 }

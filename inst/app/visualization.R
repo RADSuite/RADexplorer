@@ -1,6 +1,6 @@
 make_msa_plotly <- function(
     taxon,
-    varRegions = c("V1regions","V2regions","V3regions","V4regions","V5regions","V6regions","V7regions","V8regions","V9regions"),
+    varRegions = c("V1","V2","V3","V4","V5","V6","V7","V8","V9"),
     RADq_path = NULL,
     unique_path = NULL,
     groupings_path = NULL,
@@ -312,7 +312,8 @@ make_msa_plotly <- function(
       # y axis formatting
       scale_y_continuous(
         breaks = y_map$y,
-        labels = paste0("<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", rev(taxa_levels), "</span>")
+        labels = paste0("<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", taxa_levels, "</span>"),
+        trans = "reverse"
       ) +
       theme_minimal() +
       theme(legend.position = "none", panel.grid = element_blank()) +
