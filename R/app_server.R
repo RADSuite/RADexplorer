@@ -21,7 +21,8 @@ app_server <- function(input, output, session) {
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
 
-  # this keeps track of the user's selected taxa
+  # this keeps track of the user's selected genera and taxa
+  selected_genera <- reactiveVal(NULL)
   selected_taxa <- reactiveVal(NULL)
 
   # this keeps track of the user's selected variable regions
@@ -157,19 +158,25 @@ app_server <- function(input, output, session) {
     shinyjs::toggleState("continueWithTaxa", condition = ok)
   })
 
-  # this sets the selectedTaxa variable with the users selections
+  # this takes the user to RADx
+  # and sets the selectedTaxa variable with the users selections
+  # and recieves RADq from RADalign
   observeEvent(input$continueWithTaxa, {
-    #print(input$selectTaxa)
-    #print(as.list(input$selectTaxa))
+    selected_genera(input$selectGenus)
     selected_taxa(input$selectTaxa)
-    #print("Selected Taxa:")
-    #print(selected_taxa())
 
     ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
     #RADq(RADalign::getSequences(selected_taxa())
     ##########                                                                      ############
 
     screen("radx")
+  })
+
+  # this takes the user to radport
+  observeEvent(input$download, {
+    selected_genera(input$selectGenus)
+    selected_taxa(input$selectTaxa)
+    screen("RADport")
   })
 
   # this sets the selected_vregions variable with the users selections
@@ -179,30 +186,27 @@ app_server <- function(input, output, session) {
     ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
     #RADq(RADalign::selectVRegions(selected_vregions(), TRUE))
     ##########                                                                      ############
-
-
-  })
-
-  # this changes the selected screen based on whether the user is using RADlib or their own database
-  observeEvent(input$continue, {
-    req(input$mode)
-    if (input$mode == "RADlib") screen("menu")
-    if (input$mode == "upload") screen("upload")
   })
 
   # this is the event that takes the user back to the main menu
   observeEvent(input$backToMenu, {
     screen("menu")
-  })
-
-  # this takes the user to radx
-  observeEvent(input$continueWithTaxa, {
-    screen("radx")
-  })
-
-  # this takes the user to the taxa select screen
-  observeEvent(input$tomenu, {
-    screen("menu")
+    if (!is.null(selected_taxa()) && !is.null(selected_genera())) {
+      updateSelectizeInput(
+        session,
+        "selectGenus",
+        selected = selected_genera(),
+        choices = selected_genera(),
+        server = TRUE
+      )
+      updateSelectizeInput(
+        session,
+        "selectTaxa",
+        selected = selected_taxa(),
+        choices = selected_taxa(),
+        server = TRUE
+      )
+    }
   })
 
   # this is the meat of the screen rendering
@@ -256,8 +260,7 @@ app_server <- function(input, output, session) {
               style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
               div(
                 style = "display:flex; gap:12px; width:100%;",
-                h4("Welcome to RADexplorer!", style = "margin:0;"),
-                #actionButton("backToMenu", "Back", style = "margin-left:auto;")
+                h4("RADexplorer", style = "margin:0;")
               ),
               # this is the Reference Library card
               # it currently grays out the option to select the library and forces the user to select RADlib
@@ -336,6 +339,40 @@ app_server <- function(input, output, session) {
           )
         )
       )
+    } else if (screen() == "RADport") {
+      # RADport download menu
+      page_fillable(
+        title = "RADport",
+        div(
+          style = "display:flex; align-items:flex-start; justify-content:center; padding-top:100px; padding-bottom:100px;",
+          card(
+            id = "taxaCard",
+            style = "width: min(1100px, 80vw); max-height: 250vh; overflow: visible;",
+            card_body(
+              style = "display:flex; flex-direction:column; gap:16px; overflow:auto;",
+              div(
+                style = "display:flex; gap:12px; width:100%;",
+                h4("RADport", style = "margin:0;"),
+                actionButton("backToMenu", "Back", style = "margin-left:auto;")
+              )
+            ),
+            # this is the card that provides the download options
+            card(
+              fluidPage(
+                useShinyjs(),
+                p("Select pipeline:"),
+                div(
+                  style = "display:flex; gap:12px; width:100%;",
+                  actionButton("continueKraken", "Kraken", style = "flex:1;"),
+                  actionButton("continueMetascope", "Metascope", style = "flex:1;"),
+                  actionButton("continueQIIME", "QIIME2", style = "flex:1;")
+                )
+              )
+            )
+          )
+        )
+      )
+
     }
   })
 

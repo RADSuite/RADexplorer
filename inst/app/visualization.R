@@ -316,7 +316,7 @@ make_msa_plotly <- function(
         trans = "reverse"
       ) +
       theme_minimal() +
-      theme(legend.position = "none", panel.grid = element_blank()) +
+      theme(legend.position = "none") +
       labs(x = NULL, y = NULL)
   }
 
