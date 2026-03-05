@@ -50,13 +50,16 @@ app_server <- function(input, output, session) {
     line_genus <- sub("\\s.*$", "", genus_species)
     sp <- genus_species[line_genus %in% selected_genera]
 
-    updateSelectizeInput(
-      session,
-      "selectTaxa",
-      choices = sp,
-      selected = character(0),
-      server = TRUE
-    )
+    if (is.null(selected_taxa())) {
+      updateSelectizeInput(
+        session,
+        "selectTaxa",
+        choices = sp,
+        selected = character(0),
+        server = TRUE
+      )
+    }
+
   })
 
   # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
@@ -128,27 +131,48 @@ app_server <- function(input, output, session) {
   # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
   observeEvent(input$entireGenus, {
 
-    selected_genera <- input$selectGenus
-    line_genus <- sub("\\s.*$", "", genus_species)
-    sp <- genus_species[line_genus %in% selected_genera]
+    print(selected_genera())
+    print(is.null(selected_genera()))
+    if (is.null(selected_genera()) && is.null(selected_taxa())) {
+      selected_genera <- input$selectGenus
+      line_genus <- sub("\\s.*$", "", genus_species)
+      sp <- genus_species[line_genus %in% selected_genera]
 
-    if (isTRUE(input$entireGenus)) {
-      updateSelectizeInput(
-        session,
-        "selectTaxa",
-        selected = sp,
-        choices = unique(sp),
-        server = TRUE
-      )
+      if (isTRUE(input$entireGenus)) {
+        updateSelectizeInput(
+          session,
+          "selectTaxa",
+          selected = sp,
+          choices = unique(sp),
+          server = TRUE
+        )
+      } else {
+        updateSelectizeInput(
+          session,
+          "selectTaxa",
+          selected = character(0),
+          choices = unique(sp),
+          server = TRUE
+        )
+      }
     } else {
       updateSelectizeInput(
         session,
-        "selectTaxa",
-        selected = character(0),
-        choices = unique(sp),
+        "selectGenus",
+        selected = selected_genera(),
+        choices = unique(selected_genera()),
         server = TRUE
       )
+      updateSelectizeInput(
+        session,
+        "selectTaxa",
+        selected = selected_taxa(),
+        choices = unique(selected_taxa()),
+        server = TRUE
+      )
+
     }
+
   })
 
   # this activates the explore + download buttons on the menu page when the user has selected the taxa of interest
@@ -191,22 +215,6 @@ app_server <- function(input, output, session) {
   # this is the event that takes the user back to the main menu
   observeEvent(input$backToMenu, {
     screen("menu")
-    if (!is.null(selected_taxa()) && !is.null(selected_genera())) {
-      updateSelectizeInput(
-        session,
-        "selectGenus",
-        selected = selected_genera(),
-        choices = selected_genera(),
-        server = TRUE
-      )
-      updateSelectizeInput(
-        session,
-        "selectTaxa",
-        selected = selected_taxa(),
-        choices = selected_taxa(),
-        server = TRUE
-      )
-    }
   })
 
   # this is the meat of the screen rendering
