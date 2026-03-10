@@ -3253,7 +3253,7 @@ Brucella haematophila
 Brucella inopinata
 Brucella intermedia
 Brucella lupini
-Brucella melitensis bv. 1 str. 16M
+Brucella melitensis
 Brucella microti CCM 4915
 Brucella neotomae
 Brucella oryzae
@@ -3263,7 +3263,7 @@ Brucella pituitosa
 Brucella pseudintermedia
 Brucella pseudogrignonensis
 Brucella rhizosphaerae
-Brucella suis 1330
+Brucella suis
 Brucella thiophenivorans
 Brucella tritici
 Brucella vulpis
@@ -4331,14 +4331,14 @@ Chitinophaga vietnamensis
 Chlamydia abortus
 Chlamydia avium
 Chlamydia buteonis
-Chlamydia caviae GPIC
+Chlamydia caviae
 Chlamydia crocodili
 Chlamydia felis Fe/C-56
 Chlamydia gallinacea 08-1274/3
 Chlamydia ibidis 10-1398/6
 Chlamydia muridarum str. Nigg
 Chlamydia pecorum
-Chlamydia pneumoniae TW-183
+Chlamydia pneumoniae
 Chlamydia poikilotherma
 Chlamydia psittaci 6BC
 Chlamydia serpentis
@@ -4352,7 +4352,7 @@ Chloracidobacterium thermophilum B
 Chloracidobacterium validum
 Chlorobaculum limnaeum
 Chlorobaculum parvum NCIB 8327
-Chlorobaculum tepidum TLS
+Chlorobaculum tepidum
 Chlorobaculum thiosulfatiphilum
 Chlorobium ferrooxidans DSM 13031
 Chlorobium limicola DSM 245
@@ -4407,7 +4407,7 @@ Chromobacterium sinusclupearum
 Chromobacterium sphagni
 Chromobacterium subtsugae
 Chromobacterium vaccinii
-Chromobacterium violaceum ATCC 12472
+Chromobacterium violaceum
 Chromohalobacter beijerinckii
 Chromohalobacter canadensis
 Chromohalobacter israelensis DSM 3043
@@ -4769,7 +4769,7 @@ Clostridium tarantellae
 Clostridium tepidiprofundi DSM 19306
 Clostridium tepidum
 Clostridium tertium
-Clostridium tetani E88
+Clostridium tetani
 Clostridium tetanomorphum
 Clostridium thailandense
 Clostridium thermarum
@@ -6529,7 +6529,7 @@ Erythrobacter tepidarius
 Erythrobacter westpacificensis
 Escherichia albertii
 Escherichia coli O157:H7 str. Sakai
-Escherichia coli str. K-12 substr. MG1655
+Escherichia coli
 Escherichia fergusonii
 Escherichia marmotae
 Escherichia ruysiae
@@ -7540,7 +7540,7 @@ Geobacter grbiciae
 Geobacter hydrogenophilus
 Geobacter metallireducens GS-15
 Geobacter pickeringii
-Geobacter sulfurreducens PCA
+Geobacter sulfurreducens
 Geochorda subterranea
 Geodermatophilus africanus
 Geodermatophilus amargosae
@@ -8554,7 +8554,7 @@ Helicobacter ganmani
 Helicobacter gastrocanis
 Helicobacter gastrofelis
 Helicobacter heilmannii
-Helicobacter hepaticus ATCC 51449
+Helicobacter hepaticus
 Helicobacter himalayensis
 Helicobacter ibis
 Helicobacter jaachi
@@ -11148,7 +11148,7 @@ Mesomycoplasma bovoculi M165/69
 Mesomycoplasma conjunctivae
 Mesomycoplasma dispar
 Mesomycoplasma flocculare ATCC 27399
-Mesomycoplasma hyopneumoniae J
+Mesomycoplasma hyopneumoniae
 Mesomycoplasma hyorhinis
 Mesomycoplasma lagogenitalium
 Mesomycoplasma moatsii
@@ -11170,7 +11170,7 @@ Mesoplasma chauliocola
 Mesoplasma coleopterae
 Mesoplasma corruscae
 Mesoplasma entomophilum
-Mesoplasma florum L1
+Mesoplasma florum
 Mesoplasma grammopterae ATCC 49580
 Mesoplasma lactucae ATCC 49193
 Mesoplasma melaleucae
@@ -11444,14 +11444,14 @@ Methanonatronarchaeum thermophilum
 Methanooceanicella nereidis
 Methanoplanus endosymbiosus
 Methanoplanus limicola DSM 2279
-Methanopyrus kandleri AV19
+Methanopyrus kandleri
 Methanorbis furvi
 Methanorbis rubei
 Methanoregula boonei 6A8
 Methanoregula formicica SMSP
 Methanosalsum natronophilum
 Methanosalsum zhilinae DSM 4017
-Methanosarcina acetivorans C2A
+Methanosarcina acetivorans
 Methanosarcina baikalica
 Methanosarcina barkeri MS
 Methanosarcina flavescens
@@ -11587,7 +11587,7 @@ Methyloceanibacter stevinii
 Methyloceanibacter superfactus
 Methylocella silvestris BL2
 Methylocella tundrae
-Methylococcus capsulatus str. Bath
+Methylococcus capsulatus
 Methylococcus geothermalis
 Methylococcus mesophilus
 Methylocucumis oryzae
@@ -12629,7 +12629,7 @@ Mycoplasma leonicaptivi ATCC 49890
 Mycoplasma marinum
 Mycoplasma miroungigenitalium
 Mycoplasma miroungirhinis
-Mycoplasma mobile 163K
+Mycoplasma mobile
 Mycoplasma mycoides subsp. capri
 Mycoplasma nasistruthionis
 Mycoplasma ovis str. Michigan
@@ -15523,7 +15523,7 @@ Phytopseudomonas dryadis
 Phytopseudomonas punonensis
 Phytopseudomonas seleniipraecipitans
 Phytopseudomonas straminea
-Picrophilus oshimae DSM 9789
+Picrophilus oshimae
 Pigmentibacter ruber
 Pigmentiphaga aceris
 Pigmentiphaga daeguensis
@@ -16315,7 +16315,7 @@ Pseudomonas abietaniphila
 Pseudomonas abieticivorans
 Pseudomonas abyssi
 Pseudomonas aegrilactucae
-Pseudomonas aeruginosa PAO1
+Pseudomonas aeruginosa
 Pseudomonas aestiva
 Pseudomonas aestuarii
 Pseudomonas agarici
@@ -16977,7 +16977,7 @@ Pyramidobacter piscolens
 Pyramidobacter porci
 Pyranulibacter aquaticus
 Pyrinomonas methylaliphatogenes
-Pyrobaculum aerophilum str. IM2
+Pyrobaculum aerophilum
 Pyrobaculum arsenaticum DSM 13514
 Pyrobaculum calidifontis JCM 11548
 Pyrobaculum ferrireducens
@@ -17466,7 +17466,7 @@ Rickettsia asiatica
 Rickettsia australis str. Cutlack
 Rickettsia bellii RML369-C
 Rickettsia canadensis str. CA410
-Rickettsia conorii str. Malish 7
+Rickettsia conorii
 Rickettsia endosymbiont of Aspidapion aeneum
 Rickettsia endosymbiont of Cantharis rufa
 Rickettsia endosymbiont of Cardiosporidium cionae
@@ -17500,7 +17500,7 @@ Rickettsia sibirica 246
 Rickettsia slovaca 13-B
 Rickettsia tamurae
 Rickettsia tillamookensis
-Rickettsia typhi str. Wilmington
+Rickettsia typhi
 Rickettsiales endosymbiont of Peranema trichophorum
 Rickettsiales endosymbiont of Stachyamoeba lipophora
 Rickettsiales endosymbiont of Trichoplax sp. H2
@@ -18198,7 +18198,7 @@ Salisediminibacterium beveridgei
 Salisediminibacterium halotolerans
 Saliterribacillus persicus
 Salmonella bongori NCTC 12419
-Salmonella enterica subsp. enterica serovar Typhimurium str. LT2
+Salmonella enterica
 Salmonirosea aquatica
 Salsipaludibacter albus
 Salsuginibacillus halophilus
@@ -18541,7 +18541,7 @@ Shewanella zhuhaiensis
 Shiella aurantiaca
 Shigella boydii
 Shigella dysenteriae
-Shigella flexneri 2a str. 301
+Shigella flexneri
 Shigella sonnei
 Shimazuella alba
 Shimazuella kribbensis DSM 45090
@@ -21464,7 +21464,7 @@ Trebonia kvetii
 Treponema berlinense
 Treponema brennaborense DSM 12168
 Treponema bryantii
-Treponema denticola ATCC 35405
+Treponema denticola
 Treponema endosymbiont of Eucomonympha sp.
 Treponema lecithinolyticum ATCC 700332
 Treponema maltophilum ATCC 51939

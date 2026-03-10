@@ -34,6 +34,7 @@ app_server <- function(input, output, session) {
 
   # selected download pipeline
   download_pipeline <- reactiveVal(NULL)
+  selected_taxa_metascope_filter <- reactiveVal(NULL)
 
   # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
@@ -53,8 +54,6 @@ app_server <- function(input, output, session) {
   # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
   # simply for aesthetics
   observeEvent(input$selectGenus, {
-    req(screen() == "menu")
-
     selected_genera(input$selectGenus)
     selected_genera_local <- input$selectGenus
     n_genera <- if (is.null(selected_genera_local)) 0 else length(selected_genera_local)
@@ -143,6 +142,10 @@ app_server <- function(input, output, session) {
     selected_taxa(input$selectTaxa)
   }, ignoreInit = TRUE)
 
+  observeEvent(input$selectTaxaFilter, {
+    selected_taxa_metascope_filter(input$selectTaxaFilter)
+  }, ignoreInit = TRUE)
+
   # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
   observeEvent(input$entireGenus, {
     req(screen() == "menu")
@@ -186,9 +189,9 @@ app_server <- function(input, output, session) {
 
     print(selected_taxa())
     ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
-    #RADq(RADalign::createRADq(selected_taxa(), TRUE))
+    RADq(RADalign::createRADq(selected_taxa(), TRUE))
     ##########                                                                      ############
-    #print(utils::head(RADq()))
+    print(utils::head(RADq()))
 
     screen("radx")
   })
@@ -226,7 +229,7 @@ app_server <- function(input, output, session) {
   observeEvent(input$port, {
     ########## THIS IS WHERE WE DOWNLOAD THE FILES FOR PORTING TO OTHER PIPELINES ############
     if (download_pipeline() == "metascope") {
-      #RADdownload::download_RAD_data("metascope", selected_species, metascope_filter_list))
+      #RADalign::download_RAD_data("MetaScope", selected_taxa())
     } else if (download_pipeline() == "kraken") {
 
     } else if (download_pipeline() == "qiime2") {
@@ -234,7 +237,6 @@ app_server <- function(input, output, session) {
     }
     ##########                                                                    ############
   })
-
 
 
   # this is the meat of the screen rendering
@@ -247,13 +249,13 @@ app_server <- function(input, output, session) {
     } else if (screen() == "RADport") {
       radport_screen_ui()
     } else if (screen() == "metascope") {
-      metascope_screen_ui()
+      metascope_screen_ui(genus, genus_species)
     }
   })
 
   msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$uniqueRegions), {
     make_msa_plotly(
-      taxon = selected_taxa(),
+      RADq = RADq(),
       varRegions = selected_vregions(),
       highlight_unique = input$uniqueRegions,
       detailed = input$detailedView

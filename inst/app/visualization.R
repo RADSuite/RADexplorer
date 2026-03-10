@@ -1,7 +1,6 @@
 make_msa_plotly <- function(
-    taxon,
+    RADq,
     varRegions = c("V1","V2","V3","V4","V5","V6","V7","V8","V9"),
-    RADq_path = NULL,
     unique_path = NULL,
     groupings_path = NULL,
     highlight_unique = FALSE,
@@ -14,16 +13,14 @@ make_msa_plotly <- function(
   library(ggtext)
 
   #uses test data if no data is loaded
-  if (is.null(RADq_path) || is.null(unique_path)) {
+  if (is.null(unique_path)) {
     test_dir <- system.file("testdata", package = package)
     if (test_dir == "") stop("Could not find inst/testdata in installed package.")
-    if (is.null(RADq_path))   RADq_path   <- file.path(test_dir, "exampleRADq.csv")
     if (is.null(unique_path)) unique_path <- file.path(test_dir, "unique.csv")
     if (is.null(groupings_path)) groupings_path <- file.path(test_dir, "examplegroups_long.csv")
   }
 
   # read in RADq input
-  RADq   <- readr::read_csv(RADq_path, show_col_types = FALSE)
   unique <- readr::read_csv(unique_path, show_col_types = FALSE)
   groups <- readr::read_csv(groupings_path, show_col_types = FALSE)
 
@@ -40,7 +37,7 @@ make_msa_plotly <- function(
     transmute(
       species,
       variable_region_clean = variable_region,
-      copy_num,
+      copy_num = as.numeric(copy_num),
       seq_id
     ) %>%
     filter(!is.na(copy_num), !is.na(seq_id))
@@ -121,7 +118,7 @@ make_msa_plotly <- function(
 
   #makes hover text display "Species copy number"
   RADqtiles <- RADqtiles %>%
-    mutate(seq_id_local = factor(gsub("^V[0-9]+", "", seq_id))) %>%
+    mutate(seq_id_local = factor(substring(seq_id, 3))) %>%
     group_by(species, variable_region_clean) %>%
     add_count(seq_id_local, name = "seq_n") %>%
     arrange(desc(seq_n), seq_id_local, copy_num, .by_group = TRUE) %>%
