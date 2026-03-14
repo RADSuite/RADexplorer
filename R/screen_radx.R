@@ -15,12 +15,6 @@ radx_screen_ui <- function() {
         label = "Detailed View",
         value = TRUE
       ),
-      # unique region view button
-      input_switch(
-        "uniqueRegions",
-        label = "Unique region view",
-        value = FALSE
-      ),
       div(
         style = "display:flex; gap:10px; width:100%;",
         actionButton("backToMenu", "Back", style = "flex:1;")

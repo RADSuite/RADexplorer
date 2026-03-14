@@ -82,7 +82,6 @@ app_server <- function(input, output, session) {
     sp <- genus_species[line_genus %in% selected_genera_local]
     n_members <- length(unique(sp))
 
-
     updateSelectizeInput(
       session,
       "selectTaxa",
@@ -90,7 +89,6 @@ app_server <- function(input, output, session) {
       selected = character(0),
       server = TRUE
     )
-
 
     genus_word <- if (n_genera == 1) "genus" else "genera"
     label <- if (n_members == 1) {
@@ -184,7 +182,6 @@ app_server <- function(input, output, session) {
     screen("radx")
   })
 
-
   # this sets the selected_vregions variable with the users selections
   observeEvent(input$varRegions, {
     selected_vregions(input$varRegions)
@@ -194,12 +191,10 @@ app_server <- function(input, output, session) {
     ##########                                                                      ############
   })
 
-
   # this is the event that takes the user back to the main menu
   observeEvent(input$backToMenu, {
     screen("menu")
   })
-
 
   # this takes the user to radport
   observeEvent(input$download, {
@@ -214,6 +209,11 @@ app_server <- function(input, output, session) {
     screen("metascope")
   })
 
+  # back button from metascope instructions page
+  observeEvent(input$backToMetascopeDownload, {
+    screen("metascope")
+  })
+
   observeEvent(input$port, {
     ########## THIS IS WHERE WE DOWNLOAD THE FILES FOR PORTING TO OTHER PIPELINES ############
     if (download_pipeline() == "metascope") {
@@ -222,6 +222,7 @@ app_server <- function(input, output, session) {
       } else {
         RADalign::download_RAD_data("MetaScope", selected_taxa())
       }
+      screen("metascopeInstructions")
     } else if (download_pipeline() == "kraken") {
 
     } else if (download_pipeline() == "qiime2") {
@@ -229,7 +230,6 @@ app_server <- function(input, output, session) {
     }
     ##########                                                                    ############
   })
-
 
   # this is the meat of the screen rendering
   # it selects the screen that the user is seeing based on the variable above and renders it accordingly
@@ -242,15 +242,16 @@ app_server <- function(input, output, session) {
       radport_screen_ui()
     } else if (screen() == "metascope") {
       metascope_screen_ui(genus, genus_species)
+    } else if (screen() == "metascopeInstructions") {
+      metascope_instructions_ui()
     }
   })
 
-  msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$uniqueRegions), {
+  msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView), {
     make_msa_plotly(
       RADq = RADq(),
       unique = uniqueRADq(),
       varRegions = selected_vregions(),
-      highlight_unique = input$uniqueRegions,
       detailed = input$detailedView
     )
   })

@@ -38,6 +38,8 @@ make_msa_plotly <- function(
   # stack gene copies within each species, with gaps between species
 
   gap <- 1.5  # vertical space between species blocks
+  vr_levels_all <- paste0("V", 1:9)
+  selected_vr <- selected_regions_clean
 
   # lock species ordering
   species_levels <- RADqtiles %>%
@@ -58,47 +60,12 @@ make_msa_plotly <- function(
     )
 
   RADqtiles <- RADqtiles %>%
-    mutate(
-      species = factor(species, levels = species_levels)
-    ) %>%
+    mutate(species = factor(species, levels = species_levels)) %>%
     left_join(copies_tbl %>% select(species, start), by = "species") %>%
-    mutate(
-      y = start + copy_num - 1
-    )
+    mutate(y = start + copy_num - 1)
 
   # one label per species block
   y_breaks <- copies_tbl %>% select(species, y_lab, n_copies)
-
-  #####################################################################################
-  # mark variable regions where unique (toggled)
-
-  # default: nothing is unique, no rectangles
-  RADqtiles <- RADqtiles %>% mutate(is_unique_block = FALSE)
-
-  if (highlight_unique) {
-
-    unique_long <- unique %>%
-      select(taxa, any_of(selected_regions_clean)) %>%
-      pivot_longer(
-        cols = -taxa,
-        names_to = "variable_region_clean",
-        values_to = "flag"
-      ) %>%
-      filter(flag == 1) %>%
-      transmute(
-        species = taxa,
-        variable_region_clean,
-        unique_flag = TRUE
-      )
-
-    # tag tiles as unique by species x region
-    RADqtiles <- RADqtiles %>%
-      left_join(unique_long, by = c("species", "variable_region_clean")) %>%
-      mutate(
-        is_unique_block = coalesce(unique_flag, FALSE)
-      ) %>%
-      select(-unique_flag)
-  }
 
   #####################################################################################
   # reorder copies within each species, groups like copies together
@@ -120,16 +87,6 @@ make_msa_plotly <- function(
   #####################################################################################
   # build ggplot
 
-  RADqtiles_unique <- RADqtiles %>% filter(is_unique_block)
-  RADqtiles_nonunique <- RADqtiles %>% filter(!is_unique_block)
-
-  alpha_nonunique <- if (highlight_unique) 0.5 else 1
-
-
-  vr_levels_all <- paste0("V", 1:9)
-  selected_vr <- selected_regions_clean
-
-
   # base ggplot
   p_msa <- ggplot()
 
@@ -139,18 +96,33 @@ make_msa_plotly <- function(
     # map each variable region to a numeric x position (same idea as non detailed)
     vr_levels <- vr_levels_all
     n_vr <- length(vr_levels)
-
     tile_w <- 0.7
     backbone_pad <- 0.45
 
-    RADqtiles_nonunique <- RADqtiles_nonunique %>%
-      mutate(vx = match(variable_region_clean, vr_levels))
-
-    RADqtiles_unique <- RADqtiles_unique %>%
+    RADqtiles <- RADqtiles %>%
       mutate(vx = match(variable_region_clean, vr_levels))
 
     detailed_backbone_df <- RADqtiles %>%
       distinct(species, y)
+
+    # repeated gray headers above each species block
+    species_header_df <- copies_tbl %>%
+      transmute(y_header = start - 0.8) %>%
+      tidyr::crossing(
+        tibble(
+          variable_region_clean = vr_levels,
+          vx = seq_along(vr_levels)
+        )
+      )
+
+    # small gray copy number labels to the right of each backbone row
+    copy_num_df <- RADqtiles %>%
+      distinct(species, y, copy_num) %>%
+      transmute(
+        y = y,
+        x = n_vr + 0.72 + backbone_pad,
+        copy_label = copy_num
+      )
 
     # backbone
     p_msa <- p_msa +
@@ -162,46 +134,45 @@ make_msa_plotly <- function(
         color = NA,
         width = n_vr + 2 * backbone_pad,
         height = 0.20
+      ) +
+      geom_text(
+        data = species_header_df,
+        aes(x = vx, y = y_header, label = variable_region_clean),
+        inherit.aes = FALSE,
+        color = "black",
+        size = 2.8
+      ) +
+      geom_text(
+        data = copy_num_df,
+        aes(x = x, y = y, label = copy_label),
+        inherit.aes = FALSE,
+        color = "grey55",
+        hjust = 0,
+        size = 2.4
+      ) +
+      geom_tile(
+        data = RADqtiles,
+        aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
+        color = "black",
+        width = tile_w,
+        height = 0.75,
+        linewidth = 0.35
       )
-
-    # add the tiles that are non unique (if they exist)
-    if (nrow(RADqtiles_nonunique) > 0) {
-      p_msa <- p_msa +
-        geom_tile(
-          data = RADqtiles_nonunique,
-          aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
-          alpha = alpha_nonunique,
-          color = "black", width = tile_w, height = 0.75,
-          linewidth = 0.35
-        )
-    }
-
-    # add the tiles that are unique (if they exist)
-    if (nrow(RADqtiles_unique) > 0) {
-      p_msa <- p_msa +
-        geom_tile(
-          data = RADqtiles_unique,
-          aes(x = vx, y = y, fill = seq_id_local, text = hover_text),
-          alpha = 1,
-          color = "black", width = tile_w, height = 0.75,
-          linewidth = 0.35
-        )
-    }
 
     # formatting
     p_msa <- p_msa +
       scale_x_continuous(
         breaks = seq_len(n_vr),
-        labels = vr_levels,
+        labels = NULL,
         position = "top",
-        limits = c(0.3 - backbone_pad, n_vr + 0.5 + backbone_pad),
+        limits = c(0.3 - backbone_pad, n_vr + 1.2 + backbone_pad),
         expand = c(0, 0)
       ) +
       scale_y_continuous(
         breaks = y_breaks$y_lab,
         labels = paste0(
-          "<span style='font-size:10pt; line-height:1.1; font-weight:750;'>", y_breaks$species, "</span>",
-          "<br><span style='font-size:8pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene copies</span>"
+          "<span style='font-size:10pt; line-height:1.1; font-weight:650;'><i>", y_breaks$species, "</i></span>",
+          "<br><span style='font-size:8pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene(s)</span>"
         ),
         trans = "reverse"
       ) +
@@ -212,6 +183,10 @@ make_msa_plotly <- function(
         axis.text.y = ggtext::element_markdown(margin = margin(r = 10)),
         strip.text = element_text(size = 12)
       )
+
+    # dynamic plot height so tiles do not stretch when only a few species are selected
+    n_y_units <- max(c(RADqtiles$y, 1), na.rm = TRUE)
+    plot_height <- max(500, 80 + (n_y_units * 18))
 
   } else {
     # if detailed mode is turned off
@@ -228,66 +203,101 @@ make_msa_plotly <- function(
         group = as.character(group)
       ) %>%
       group_by(vregion) %>%
-      mutate(
-        group_id = match(group, unique(group))
-      ) %>%
+      mutate(group_id = match(group, unique(group))) %>%
       ungroup()
 
     taxa_levels <- sort(unique(groups_plot$taxa))
-    y_map <- tibble(taxa = taxa_levels, y = seq_along(taxa_levels) + (seq_along(taxa_levels) - 1) * gap)
+    y_map <- tibble(
+      taxa = taxa_levels,
+      y = seq_along(taxa_levels) + (seq_along(taxa_levels) - 1) * gap
+    )
 
-    groups_plot <- left_join(groups_plot, y_map, by = "taxa")
+    groups_plot <- groups_plot %>%
+      left_join(y_map, by = "taxa")
 
     n_vr <- length(vr_levels_all)
     tile_w <- 0.7
 
+    # always include first gray header, then repeat every 10 taxa after that
+    header_idx <- seq(1, nrow(y_map), by = 10)
+
+    header_rows <- y_map[header_idx, , drop = FALSE] %>%
+      transmute(y_header = y - 1.4) %>%
+      tidyr::crossing(
+        tibble(
+          vregion = vr_levels_all,
+          vx = seq_along(vr_levels_all)
+        )
+      )
+
     p_msa <- ggplot() +
-      # backbone
-      geom_tile(
-        data = tibble(y = y_map$y),
-        aes(x = (n_vr + 1) / 2, y = y),
+      # repeated gray headers
+      geom_text(
+        data = header_rows,
+        aes(x = vx, y = y_header, label = vregion),
         inherit.aes = FALSE,
-        fill = "grey80",
-        color = NA,
-        width = n_vr,
-        height = 0.25
+        color = "black",
+        size = 2.8
       ) +
       # vregion blocks
       geom_tile(
         data = groups_plot %>% filter(vregion %in% selected_vr),
         aes(x = match(vregion, vr_levels_all), y = y, fill = factor(group_id)),
-        width = tile_w, height = 1.5, color = "black",
+        width = tile_w,
+        height = 1.5,
+        color = "black",
         linewidth = 0.35
       ) +
       # x axis formatting
       scale_x_continuous(
         breaks = seq_len(n_vr),
-        labels = vr_levels_all,
+        labels = NULL,
         position = "top",
         limits = c(0.3, n_vr + 0.5),
         expand = c(0, 0)
       ) +
-      # y axis formatting
       scale_y_continuous(
         breaks = y_map$y,
-        labels = paste0("<span style='font-size:10pt; line-height:1.1; font-weight:500;'>", taxa_levels, "</span>"),
+        labels = paste0(
+          "<span style='font-size:10pt; line-height:1.1; font-weight:650;'><i>", y_map$taxa, "</i></span>",
+          "<br><span style='font-size:8pt; line-height:1.1;'>", y_breaks$n_copies, " 16S gene(s)</span>"
+        ),
         trans = "reverse"
       ) +
       theme_minimal() +
-      theme(legend.position = "none") +
+      theme(
+        legend.position = "none",
+        axis.text.y = ggtext::element_markdown(margin = margin(r = 10)),
+        axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank()
+      ) +
       labs(x = NULL, y = NULL)
-  }
 
+    # dynamic plot height so tiles do not stretch when only a few taxa are selected
+    plot_height <- max(200, 80 + (nrow(y_map) * 32))
+  }
 
   #####################################################################################
   # convert to plotly
 
   p_plotly <- ggplotly(p_msa, tooltip = c("text", "seq_id")) %>%
-    layout(margin = list(l = 125, r = 30, t = 50, b = 40))
-
-  p_plotly <- p_plotly %>%
-    layout(xaxis = list(side = "top"))
-
+    layout(
+      margin = list(l = 125, r = 30, t = 50, b = 40),
+      height = plot_height,
+      xaxis = list(
+        side = "top",
+        showline = FALSE,
+        zeroline = FALSE,
+        showgrid = FALSE
+      ),
+      yaxis = list(
+        showline = FALSE,
+        zeroline = FALSE,
+        showgrid = FALSE
+      ),
+      plot_bgcolor = "white",
+      paper_bgcolor = "white"
+    )
 
   #####################################################################################
   # final output
