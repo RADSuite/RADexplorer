@@ -4,10 +4,9 @@ metascope_screen_ui <- function(genus, species) {
     title = "RADport to Metascope",
     fillable = TRUE,
     div(
-      style = "display:flex; align-items:flex-start; justify-content:center; padding-top:100px; padding-bottom:100px; height:100vh; overflow:hidden;",
+      style = "display:flex; align-items:flex-start; justify-content:center; padding-top:50px; padding-bottom:50px; height:100vh; overflow:hidden;",
       div(
-        style = "display:flex; gap:24px; width:min(1400px, 95vw); height:calc(100vh - 200px); overflow:hidden; align-items:stretch;",
-
+        style = "display:flex; gap:24px; width:min(1400px, 95vw); height:calc(100vh - 150px); overflow:hidden; align-items:stretch;",
         card(
           style = "flex:1 1 0; height:100%; overflow:hidden;",
           card_body(
@@ -38,48 +37,61 @@ demult        ')
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
               tags$code('
-tmp_accession <- file.path("your_folder", "MetaScope_accessions_db.sqlite")')
+tmp_accession <- file.path("your_folder", "MetaScope_accessions_db.sqlite")
+                        ')
             ),
             p("Your folder:"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko')
+              tags$code('
+/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko
+                        ')
             ),
 
             h5("STEP 3 - MetaRef: Downloading target genomes"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('target_ref_temp <- file.path("your_folder", "Metascope_reference_dir")')
+              tags$code('
+target_ref_temp <- file.path("your_folder", "Metascope_reference_dir")
+                        ')
             ),
             p("Your folder:"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko')
+              tags$code('
+/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko
+                        ')
             ),
 
             h5("STEP 4 - MetaRef: Downloading filter genomes"),
             p("IF filter genomes are needed:"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('<SELECT SPECIES>
+              tags$code('
+<SELECT SPECIES>
 
-<DOWNLOAD FILTER DATASET>')
+<DOWNLOAD FILTER DATASET>
+                        ')
             ),
-            p("Then, replace this step with the following line of code:"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('filter_ref_temp <- file.path("your_folder", "Metascope_filter_dir")')
+              tags$code('
+filter_ref_temp <- file.path("your_folder", "Metascope_filter_dir")
+                      ')
             ),
             p("Your folder:"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko')
+              tags$code('
+/Users/user/Downloads/RADdownloads_05032026_204741_KYvVgrko
+                        ')
             ),
 
             h5("STEP 5 - Creating indices using a given aligner"),
             tags$pre(
               style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-              tags$code('# Create temp directory to store the Bowtie2 indices
+              tags$code('
+# Create temp directory to store the Bowtie2 indices
 index_temp <- tempfile()
 dir.create(index_temp)
 
@@ -97,14 +109,16 @@ mk_bowtie_index(
   lib_dir = index_temp,
   lib_name = "filter",
   overwrite = TRUE
-)')
+)
+                      ')
             ),
           p("Note: If you ran the above lines of code correctly, target_ref_temp and filter_ref_temp will refer to your downloaded files."),
 
           h5("STEP 6 - MetaAlign"),
           tags$pre(
             style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-            tags$code('# Create a temp directory to store output bam file
+            tags$code('
+# Create a temp directory to store output bam file
 output_temp <- tempfile()
 dir.create(output_temp)
 
@@ -119,14 +133,16 @@ target_map <-
     align_dir = output_temp,
     align_file = "bowtie_target",
     overwrite = TRUE
-  )')
+  )
+                      ')
           ),
           p("Note: If your reads require demultiplexing, refer to the first step above."),
 
           h5("STEP 7 - MetaFilter"),
           tags$pre(
             style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-            tags$code('final_map <- filter_host_bowtie(
+            tags$code('
+final_map <- filter_host_bowtie(
   reads_bam = target_map,
   lib_dir = index_temp,
   libs = "filter",
@@ -135,13 +151,15 @@ target_map <-
   # The .csv.gz output is much quicker to create!
   overwrite = TRUE,
   threads = 1
-)')
+)
+            ')
           ),
 
           h5("STEP 8 - MetaID: Origin Genome Identification"),
           tags$pre(
             style = "white-space:pre-wrap; word-break:break-word; overflow-x:auto;",
-            tags$code('output <- metascope_id(
+            tags$code('
+output <- metascope_id(
   final_map,
   input_type = "bam",
   # change input_type to "csv.gz" when not creating a BAM
@@ -155,7 +173,8 @@ knitr::kable(
   format = "html",
   digits = 2,
   caption = "Table of MetaScope ID results"
-)')
+)
+                    ')
           ),
         p("Note: If you ran the above lines of code correctly, tmp_accession will refer to your downloaded files.")
           )

@@ -24,12 +24,14 @@ app_server <- function(input, output, session) {
   # this keeps track of the user's selected genera and taxa
   selected_genera <- reactiveVal(NULL)
   selected_taxa <- reactiveVal(NULL)
+  selected_taxa_metascope_filter <- reactiveVal(NULL)
 
   # this keeps track of the user's selected variable regions
   selected_vregions <- reactiveVal(c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"))
 
   # this keeps track of the RADq dataframe that is returned from RADalign
   RADq <- reactiveVal(NULL)
+  uniqueRADq <- reactiveVal(NULL)
   loaded <- reactiveVal(FALSE)
 
   # selected download pipeline
@@ -104,13 +106,6 @@ app_server <- function(input, output, session) {
       label = HTML(paste0("<i>", label, "</i>")),
       value = FALSE
     )
-
-    # checks to see if its greater than the maximum. if so, disables the checkmark
-    if (n_members > 15 || n_members == 0) {
-      shinyjs::disable("entireGenus")
-    } else {
-      shinyjs::enable("entireGenus")
-    }
   }, ignoreInit = TRUE)
 
   # selected number of species note under the speciesSelection checkbox
@@ -121,8 +116,9 @@ app_server <- function(input, output, session) {
     col <- if (n_selected >= 1 && n_selected <= 15) "green" else "red"
 
     HTML(paste0(
-      "<p><i>Note: a maximum of 15 species can be selected for analysis. You have selected: ",
-      "<span style='color:", col, "; font-weight:700;'>", n_selected, "</span>.",
+      "<p><i>You have selected ",
+      n_selected,
+      " taxa. ",
       "</i></p>"
     ))
   })
@@ -179,8 +175,11 @@ app_server <- function(input, output, session) {
     print(selected_taxa())
     ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
     RADq(RADalign::createRADq(selected_taxa(), TRUE))
+    uniqueRADq(RADalign::createSummarizedIDs(TRUE))
     ##########                                                                      ############
     print(utils::head(RADq()))
+    print(class(uniqueRADq()))
+    print(uniqueRADq())
 
     screen("radx")
   })
@@ -219,7 +218,7 @@ app_server <- function(input, output, session) {
     ########## THIS IS WHERE WE DOWNLOAD THE FILES FOR PORTING TO OTHER PIPELINES ############
     if (download_pipeline() == "metascope") {
       if (length(input$selectTaxaFilter) != 0) {
-        RADalign::download_RAD_data("MetaScope", selected_taxa(), input$selectTaxaFilter())
+        RADalign::download_RAD_data("MetaScope", selected_taxa(), selected_taxa_metascope_filter())
       } else {
         RADalign::download_RAD_data("MetaScope", selected_taxa())
       }
@@ -249,6 +248,7 @@ app_server <- function(input, output, session) {
   msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$uniqueRegions), {
     make_msa_plotly(
       RADq = RADq(),
+      unique = uniqueRADq(),
       varRegions = selected_vregions(),
       highlight_unique = input$uniqueRegions,
       detailed = input$detailedView

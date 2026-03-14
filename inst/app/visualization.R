@@ -1,10 +1,10 @@
 make_msa_plotly <- function(
     RADq,
+    unique,
     varRegions = c("V1","V2","V3","V4","V5","V6","V7","V8","V9"),
-    unique_path = NULL,
     groupings_path = NULL,
     highlight_unique = FALSE,
-    detailed = FALSE,
+    detailed = TRUE,
     package = "RADexplorer"
 ) {
 
@@ -12,20 +12,13 @@ make_msa_plotly <- function(
   library(plotly)
   library(ggtext)
 
-  #uses test data if no data is loaded
-  if (is.null(unique_path)) {
-    test_dir <- system.file("testdata", package = package)
-    if (test_dir == "") stop("Could not find inst/testdata in installed package.")
-    if (is.null(unique_path)) unique_path <- file.path(test_dir, "unique.csv")
-    if (is.null(groupings_path)) groupings_path <- file.path(test_dir, "examplegroups_long.csv")
-  }
-
-  # read in RADq input
-  unique <- readr::read_csv(unique_path, show_col_types = FALSE)
-  groups <- readr::read_csv(groupings_path, show_col_types = FALSE)
-
   # user selected variable regions
-  selected_regions_clean <- sub("regions$", "", varRegions)
+  selected_regions_clean <- varRegions
+
+  # make summarized IDs compatible whether first column is species or taxa
+  if ("species" %in% names(unique) && !"taxa" %in% names(unique)) {
+    unique <- unique %>% dplyr::rename(taxa = species)
+  }
 
   #####################################################################################
   # detailed mode data prep (RADq tiles)
@@ -222,12 +215,23 @@ make_msa_plotly <- function(
 
   } else {
     # if detailed mode is turned off
-    groups_plot <- groups %>%
+    groups_plot <- unique %>%
+      select(taxa, any_of(selected_vr)) %>%
+      pivot_longer(
+        cols = -taxa,
+        names_to = "vregion",
+        values_to = "group"
+      ) %>%
       mutate(
         vregion = factor(vregion, levels = vr_levels_all),
         taxa = as.character(taxa),
-        group = factor(group)
-      )
+        group = as.character(group)
+      ) %>%
+      group_by(vregion) %>%
+      mutate(
+        group_id = match(group, unique(group))
+      ) %>%
+      ungroup()
 
     taxa_levels <- sort(unique(groups_plot$taxa))
     y_map <- tibble(taxa = taxa_levels, y = seq_along(taxa_levels) + (seq_along(taxa_levels) - 1) * gap)
@@ -251,7 +255,7 @@ make_msa_plotly <- function(
       # vregion blocks
       geom_tile(
         data = groups_plot %>% filter(vregion %in% selected_vr),
-        aes(x = match(vregion, vr_levels_all), y = y, fill = group),
+        aes(x = match(vregion, vr_levels_all), y = y, fill = factor(group_id)),
         width = tile_w, height = 1.5, color = "black",
         linewidth = 0.35
       ) +
