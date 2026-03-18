@@ -296,6 +296,15 @@ app_server <- function(input, output, session) {
     ##########                                                                      ############
   })
 
+  # Deselect all button
+  observeEvent(input$deselectVarRegions, {
+    updateCheckboxGroupInput(
+      session,
+      "varRegions",
+      selected = character(0)
+    )
+  })
+
   #########################################################################
   # screen navigation
 

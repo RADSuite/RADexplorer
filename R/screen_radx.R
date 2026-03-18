@@ -10,6 +10,10 @@ radx_screen_ui <- function() {
         choices = setNames(paste0("V",1:9), 1:9),
         selected = paste0("V",1:9)
       ),
+      div(
+        style = "margin-top:-16px; margin-bottom:8px; font-size:12px;",
+        actionLink("deselectVarRegions", "Deselect all v-regions")
+      ),
       input_switch(
         "detailedView",
         label = "Detailed View",
