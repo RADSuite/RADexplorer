@@ -5,53 +5,58 @@ library(ggtext)
 
 build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_clean, selected_vr, vr_levels_all, vregionIDs = FALSE) {
 
+  # set plot constants
   gap <- 1.5
+  n_vr <- length(vr_levels_all)
+  tile_w <- 0.7
+  bracket_x <- 0.28
+  bracket_arm <- 0.10
+  check_x <- bracket_x + 0.03
 
+  # reshape summarized IDs to long format
   groups_plot <- unique %>%
-    dplyr::select(taxa, dplyr::any_of(selected_vr)) %>%
-    tidyr::pivot_longer(
+    select(taxa, any_of(selected_vr)) %>%
+    pivot_longer(
       cols = -taxa,
       names_to = "vregion",
       values_to = "group"
     ) %>%
-    dplyr::mutate(
+    mutate(
       vregion = factor(vregion, levels = vr_levels_all),
       taxa = as.character(taxa),
       group = as.character(group)
     ) %>%
-    dplyr::group_by(vregion) %>%
-    dplyr::mutate(group_id = match(group, unique(group))) %>%
-    dplyr::ungroup()
+    group_by(vregion) %>%
+    mutate(group_id = match(group, unique(group))) %>%
+    ungroup()
 
+  # order taxa by group, then input order
   taxa_levels <- c(
     groups_info %>%
-      dplyr::filter(taxa %in% groups_plot$taxa) %>%
-      dplyr::arrange(group_num, taxa_order) %>%
-      dplyr::pull(taxa),
+      filter(taxa %in% groups_plot$taxa) %>%
+      arrange(group_num, taxa_order) %>%
+      pull(taxa),
     groups_plot %>%
-      dplyr::distinct(taxa) %>%
-      dplyr::pull(taxa) %>%
+      distinct(taxa) %>%
+      pull(taxa) %>%
       setdiff(groups_info$taxa) %>%
       sort()
   ) %>% unique()
 
+  # assign y positions
   y_map <- tibble(
     taxa = taxa_levels,
     y = seq_along(taxa_levels) + (seq_along(taxa_levels) - 1) * gap
   )
 
+  # add y positions to plotting data
   groups_plot <- groups_plot %>%
-    dplyr::left_join(y_map, by = "taxa")
+    left_join(y_map, by = "taxa")
 
-  n_vr <- length(vr_levels_all)
-  tile_w <- 0.7
-  bracket_x <- 0.28
-  bracket_arm <- 0.10
-
-  header_idx <- seq(1, nrow(y_map), by = 5)
-
-  header_rows <- y_map[header_idx, , drop = FALSE] %>%
-    dplyr::transmute(y_header = y - 1.4) %>%
+  # repeat V-region labels above the plot
+  header_rows <- tibble(
+    y_header = y_map$y[seq(1, nrow(y_map), by = 5)] - 1.4
+  ) %>%
     tidyr::crossing(
       tibble(
         vregion = vr_levels_all,
@@ -59,40 +64,50 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       )
     )
 
-  copy_counts_nondetailed <- RADq %>%
-    dplyr::transmute(
-      taxa = species,
-      variable_region = variable_region,
-      copy_num = as.numeric(copy_num)
-    ) %>%
-    dplyr::filter(
-      variable_region %in% selected_regions_clean,
-      !is.na(copy_num)
-    ) %>%
-    dplyr::distinct(taxa, copy_num) %>%
-    dplyr::count(taxa, name = "n_copies")
-
+  # count gene copies for y-axis labels
   y_map_labeled <- y_map %>%
-    dplyr::left_join(copy_counts_nondetailed, by = "taxa") %>%
-    dplyr::mutate(n_copies = ifelse(is.na(n_copies), 0, n_copies))
-
-  group_bracket_df_nondetailed <- groups_plot %>%
-    dplyr::distinct(taxa, y) %>%
-    dplyr::left_join(
-      groups_info %>% dplyr::select(taxa, group_label),
+    left_join(
+      RADq %>%
+        transmute(
+          taxa = species,
+          variable_region = variable_region,
+          copy_num = as.numeric(copy_num)
+        ) %>%
+        filter(variable_region %in% selected_regions_clean, !is.na(copy_num)) %>%
+        distinct(taxa, copy_num) %>%
+        count(taxa, name = "n_copies"),
       by = "taxa"
     ) %>%
-    dplyr::group_by(group_label) %>%
-    dplyr::summarise(
+    mutate(n_copies = ifelse(is.na(n_copies), 0, n_copies))
+
+  # determine which taxa are grouped vs unique
+  group_status_df <- y_map %>%
+    left_join(
+      groups_info %>% select(taxa, group, group_label),
+      by = "taxa"
+    )
+
+  group_sizes <- group_status_df %>%
+    count(group, name = "n_taxa")
+
+  # make bracket ranges for grouped taxa
+  group_bracket_df <- group_status_df %>%
+    left_join(group_sizes, by = "group") %>%
+    filter(n_taxa > 1) %>%
+    group_by(group, group_label) %>%
+    summarise(
       y_start = min(y) - 0.72,
       y_end = max(y) + 0.72,
       .groups = "drop"
-    ) %>%
-    dplyr::mutate(
-      x = bracket_x,
-      x_inner = bracket_x + bracket_arm
     )
 
+  # keep unique taxa for green checks
+  unique_taxa_df <- group_status_df %>%
+    left_join(group_sizes, by = "group") %>%
+    filter(n_taxa == 1) %>%
+    distinct(taxa, y)
+
+  # start the non-detailed plot
   p_msa <- ggplot() +
     geom_text(
       data = header_rows,
@@ -101,32 +116,8 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       color = "black",
       size = 2.8
     ) +
-    geom_segment(
-      data = group_bracket_df_nondetailed,
-      aes(x = x, xend = x, y = y_start, yend = y_end),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
-    geom_segment(
-      data = group_bracket_df_nondetailed,
-      aes(x = x, xend = x_inner, y = y_start, yend = y_start),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
-    geom_segment(
-      data = group_bracket_df_nondetailed,
-      aes(x = x, xend = x_inner, y = y_end, yend = y_end),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
     geom_tile(
-      data = groups_plot %>% dplyr::filter(vregion %in% selected_vr),
+      data = groups_plot %>% filter(vregion %in% selected_vr),
       aes(x = match(vregion, vr_levels_all), y = y, fill = factor(group_id)),
       width = tile_w,
       height = 1.5,
@@ -134,10 +125,59 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       linewidth = 0.35
     )
 
+  # add red brackets for grouped taxa
+  if (nrow(group_bracket_df) > 0) {
+    p_msa <- p_msa +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_start, yend = y_end),
+        x = bracket_x,
+        xend = bracket_x,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      ) +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_start, yend = y_start),
+        x = bracket_x,
+        xend = bracket_x + bracket_arm,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      ) +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_end, yend = y_end),
+        x = bracket_x,
+        xend = bracket_x + bracket_arm,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      )
+  }
+
+  # add green checks for unique taxa
+  if (nrow(unique_taxa_df) > 0) {
+    p_msa <- p_msa +
+      geom_text(
+        data = unique_taxa_df,
+        aes(x = check_x, y = y),
+        label = "✔",
+        inherit.aes = FALSE,
+        color = "green3",
+        size = 4
+      )
+  }
+
+  # add tile labels if requested
   if (isTRUE(vregionIDs)) {
     p_msa <- p_msa +
       geom_text(
-        data = groups_plot %>% dplyr::filter(vregion %in% selected_vr),
+        data = groups_plot %>% filter(vregion %in% selected_vr),
         aes(x = match(vregion, vr_levels_all), y = y + 0.08, label = group_id),
         inherit.aes = FALSE,
         color = "white",
@@ -146,6 +186,7 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       )
   }
 
+  # finish axes and styling
   p_msa <- p_msa +
     scale_x_continuous(
       breaks = seq_len(n_vr),
@@ -170,7 +211,8 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
     ) +
     labs(x = NULL, y = NULL)
 
-  plot_height <- max(200, 80 + (max(y_map$y) * 25))
+  # scale plot height with number of taxa
+  plot_height <- max(200, 80 + max(y_map$y) * 25)
 
   list(
     plot = p_msa,

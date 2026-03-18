@@ -5,31 +5,38 @@ library(ggtext)
 
 build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) {
 
-  RADqtiles <- layout_data$RADqtiles
+  # unpack plotting inputs
+  RADqtiles <- layout_data$RADqtiles %>%
+    mutate(vx = match(variable_region_clean, vr_levels_all))
+
   copies_tbl <- layout_data$copies_tbl
   copy_map <- layout_data$copy_map
   y_breaks <- layout_data$y_breaks
   group_bracket_df <- layout_data$group_bracket_df
+  unique_taxa_df <- layout_data$unique_taxa_df
 
+  # set plotting constants
   n_vr <- length(vr_levels_all)
   tile_w <- 0.7
   backbone_pad <- 1.25
+  backbone_width <- n_vr + 2 * backbone_pad - 1.5
   bracket_x <- -0.35
   bracket_arm <- 0.12
-  backbone_width <- n_vr + 2 * backbone_pad - 1.5
+  check_x <- bracket_x + 0.03
 
+  # build tile colors
   tile_palette <- make_detailed_tile_palette(RADqtiles)
 
-  RADqtiles <- RADqtiles %>%
-    dplyr::mutate(vx = match(variable_region_clean, vr_levels_all))
-
+  # make one backbone row per copy
   detailed_backbone_df <- copy_map %>%
-    dplyr::left_join(copies_tbl %>% dplyr::select(species, start), by = "species") %>%
-    dplyr::mutate(y = start + copy_row - 1) %>%
-    dplyr::distinct(species, copy_num, copy_row, y)
+    left_join(select(copies_tbl, species, start), by = "species") %>%
+    mutate(y = start + copy_row - 1) %>%
+    distinct(species, copy_num, copy_row, y)
 
-  species_header_df <- copies_tbl %>%
-    dplyr::transmute(y_header = start - 0.8) %>%
+  # repeat V-region labels above each species block
+  species_header_df <- tibble(
+    y_header = copies_tbl$start - 0.8
+  ) %>%
     tidyr::crossing(
       tibble(
         variable_region_clean = vr_levels_all,
@@ -37,37 +44,8 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
       )
     )
 
-  group_bracket_df_detailed <- group_bracket_df %>%
-    dplyr::mutate(
-      x = bracket_x,
-      x_inner = bracket_x + bracket_arm
-    )
-
+  # start the detailed plot
   p_msa <- ggplot() +
-    geom_segment(
-      data = group_bracket_df_detailed,
-      aes(x = x, xend = x, y = y_start, yend = y_end),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
-    geom_segment(
-      data = group_bracket_df_detailed,
-      aes(x = x, xend = x_inner, y = y_start, yend = y_start),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
-    geom_segment(
-      data = group_bracket_df_detailed,
-      aes(x = x, xend = x_inner, y = y_end, yend = y_end),
-      inherit.aes = FALSE,
-      color = "black",
-      linewidth = 0.75,
-      lineend = "round"
-    ) +
     geom_tile(
       data = detailed_backbone_df,
       aes(x = (n_vr + 1) / 2, y = y),
@@ -94,6 +72,55 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
     ) +
     scale_fill_manual(values = tile_palette)
 
+  # add red brackets for grouped taxa
+  if (nrow(group_bracket_df) > 0) {
+    p_msa <- p_msa +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_start, yend = y_end),
+        x = bracket_x,
+        xend = bracket_x,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      ) +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_start, yend = y_start),
+        x = bracket_x,
+        xend = bracket_x + bracket_arm,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      ) +
+      geom_segment(
+        data = group_bracket_df,
+        aes(y = y_end, yend = y_end),
+        x = bracket_x,
+        xend = bracket_x + bracket_arm,
+        inherit.aes = FALSE,
+        color = "red3",
+        linewidth = 0.75,
+        lineend = "round"
+      )
+  }
+
+  # add green checks for unique taxa
+  if (nrow(unique_taxa_df) > 0) {
+    p_msa <- p_msa +
+      geom_text(
+        data = unique_taxa_df,
+        aes(x = check_x, y = y_lab),
+        label = "✔",
+        inherit.aes = FALSE,
+        color = "green3",
+        size = 4
+      )
+  }
+
+  # add tile labels if requested
   if (isTRUE(vregionIDs)) {
     p_msa <- p_msa +
       geom_text(
@@ -106,6 +133,7 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
       )
   }
 
+  # finish axes and styling
   p_msa <- p_msa +
     scale_x_continuous(
       breaks = seq_len(n_vr),
@@ -117,7 +145,7 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
     scale_y_continuous(
       breaks = y_breaks$y_lab,
       labels = make_species_axis_labels(y_breaks$species, y_breaks$n_copies),
-      limits = c(max(detailed_backbone_df$y) + 0.5, min(species_header_df$y_header) - 0.2),
+      limits = c(max(detailed_backbone_df$y) + 0.5, min(species_header_df$y_header) - 0.6),
       expand = c(0, 0),
       trans = "reverse"
     ) +
@@ -129,7 +157,8 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
       strip.text = element_text(size = 12)
     )
 
-  plot_height <- max(500, 80 + (max(c(detailed_backbone_df$y, 1), na.rm = TRUE) * 18))
+  # scale plot height with number of rows
+  plot_height <- max(500, 80 + max(detailed_backbone_df$y, 1, na.rm = TRUE) * 18)
 
   list(
     plot = p_msa,
