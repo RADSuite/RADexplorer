@@ -25,10 +25,14 @@ build_detailed_plot <- function(layout_data, vr_levels_all, vregionIDs = FALSE) 
 
   # tile colors
   tile_levels <- sort(unique(substring(RADqtiles$seq_id, 3)))
-  tile_palette <- grDevices::hcl.colors(
-    max(length(tile_levels), 3),
-    palette = "Set 2"
-  )[seq_along(tile_levels)]
+  n_tiles <- length(tile_levels)
+
+  tile_palette <- grDevices::hcl(
+    h = seq(15, 375, length.out = n_tiles + 1)[1:n_tiles],
+    c = 100,
+    l = 65
+  )
+
   names(tile_palette) <- tile_levels
 
   # backbone rows
