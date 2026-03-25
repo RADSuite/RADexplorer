@@ -1,25 +1,31 @@
-# main RADexplorer plotting function
-
-sys.source(file.path(base_dir, "visualization_helpers.R"), envir = environment())
-sys.source(file.path(base_dir, "visualization_detailed.R"), envir = environment())
-sys.source(file.path(base_dir, "visualization_nondetailed.R"), envir = environment())
-
+#' Create the main RADexplorer MSA plot
+#'
+#' Builds the main interactive plot for RADexplorer from summarized
+#' variable-region alignment data.
+#'
+#' @param RADq Data frame of RADq results.
+#' @param unique Data frame of summarized unique IDs.
+#' @param groups Data frame of taxa grouping information.
+#' @param uniqueVregions Data frame of unique variable-region information.
+#' @param varRegions Character vector of variable regions to display.
+#' @param highlight_unique Logical; whether to highlight unique regions.
+#' @param detailed Logical; whether to build the detailed plot view.
+#' @param vregionIDs Logical; whether to display variable-region IDs.
+#' @param package Character scalar giving the package name.
+#'
+#' @return A plotly object.
+#' @export
 make_msa_plotly <- function(
     RADq,
     unique,
     groups,
     uniqueVregions,
-    varRegions = c("V1","V2","V3","V4","V5","V6","V7","V8","V9"),
+    varRegions = c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"),
     highlight_unique = FALSE,
     detailed = TRUE,
     vregionIDs = FALSE,
     package = "RADexplorer"
 ) {
-
-  # load packages
-  library(tidyverse)
-  library(plotly)
-  library(ggtext)
 
   # user selected variable regions
   selected_regions_clean <- varRegions

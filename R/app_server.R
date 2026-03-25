@@ -1,3 +1,13 @@
+#' Shiny server for RADexplorer
+#'
+#' Defines the main server logic for the RADexplorer application.
+#'
+#' @param input Shiny input object.
+#' @param output Shiny output object.
+#' @param session Shiny session object.
+#'
+#' @return No return value.
+#' @export
 app_server <- function(input, output, session) {
   base_dir <- system.file("app", package = "RADexplorer")
   shiny::addResourcePath("app", base_dir)
@@ -13,31 +23,26 @@ app_server <- function(input, output, session) {
   genus_species <- trimws(genus_species)
   genus_species <- genus_species[nzchar(genus_species)]
 
-  library(shiny)
-  library(bslib)
-  library(plotly)
-  library(shinyjs)
-
   # this keeps track of which menu screen the user is on
-  screen <- reactiveVal("menu")
+  screen <- shiny::reactiveVal("menu")
 
   # this keeps track of the user's selected taxa
-  selected_taxa <- reactiveVal(NULL)
-  selected_taxa_metascope_filter <- reactiveVal(NULL)
+  selected_taxa <- shiny::reactiveVal(NULL)
+  selected_taxa_metascope_filter <- shiny::reactiveVal(NULL)
 
   # this keeps track of the user's selected variable regions
-  selected_vregions <- reactiveVal(c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"))
-  vregionIDs = reactiveVal(FALSE)
+  selected_vregions <- shiny::reactiveVal(c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"))
+  vregionIDs <- shiny::reactiveVal(FALSE)
 
   # this keeps track of the RADq dataframe that is returned from RADalign
-  RADq <- reactiveVal(NULL)
-  uniqueRADq <- reactiveVal(NULL)
-  uniqueVregions <- reactiveVal(NULL)
-  RADqGroups <- reactiveVal(NULL)
-  loaded <- reactiveVal(FALSE)
+  RADq <- shiny::reactiveVal(NULL)
+  uniqueRADq <- shiny::reactiveVal(NULL)
+  uniqueVregions <- shiny::reactiveVal(NULL)
+  RADqGroups <- shiny::reactiveVal(NULL)
+  loaded <- shiny::reactiveVal(FALSE)
 
   # selected download pipeline
-  download_pipeline <- reactiveVal(NULL)
+  download_pipeline <- shiny::reactiveVal(NULL)
 
   #########################################################################
   # helper functions
@@ -52,7 +57,7 @@ app_server <- function(input, output, session) {
   }
 
   update_taxa_selectize <- function(input_id, choices, selected = character(0)) {
-    updateSelectizeInput(
+    shiny::updateSelectizeInput(
       session,
       input_id,
       choices = choices,
@@ -80,10 +85,10 @@ app_server <- function(input, output, session) {
       }
     }
 
-    updateCheckboxInput(
+    shiny::updateCheckboxInput(
       session,
       checkbox_id,
-      label = HTML(paste0("<i>", label, "</i>")),
+      label = shiny::HTML(paste0("<i>", label, "</i>")),
       value = FALSE
     )
   }
@@ -117,12 +122,12 @@ app_server <- function(input, output, session) {
   #########################################################################
   # menu screen setup
 
-  observeEvent(screen(), {
-    req(screen() == "menu")
+  shiny::observeEvent(screen(), {
+    shiny::req(screen() == "menu")
 
     if (is.null(selected_taxa())) {
       session$onFlushed(function() {
-        updateSelectizeInput(
+        shiny::updateSelectizeInput(
           session,
           "selectTaxa",
           selected = character(0),
@@ -137,11 +142,11 @@ app_server <- function(input, output, session) {
   # main taxa selection screen
 
   # selected number of species note under the speciesSelection checkbox
-  output$speciesNote <- renderUI({
+  output$speciesNote <- shiny::renderUI({
     selected_species <- input$selectTaxa
     n_selected <- if (is.null(selected_species)) 0 else length(selected_species)
 
-    HTML(paste0(
+    shiny::HTML(paste0(
       "<p><i>You have selected ",
       n_selected,
       " taxa. ",
@@ -149,16 +154,16 @@ app_server <- function(input, output, session) {
     ))
   })
 
-  observeEvent(input$selectTaxa, {
+  shiny::observeEvent(input$selectTaxa, {
     selected_taxa(input$selectTaxa)
   }, ignoreInit = TRUE)
 
-  observeEvent(input$selectTaxaFilter, {
+  shiny::observeEvent(input$selectTaxaFilter, {
     selected_taxa_metascope_filter(input$selectTaxaFilter)
   }, ignoreInit = TRUE)
 
   # this activates the explore + download buttons on the menu page when the user has selected the taxa of interest
-  observe({
+  shiny::observe({
     ok <- length(input$selectTaxa) > 0 &&
       length(input$selectTaxa) <= 15
 
@@ -172,7 +177,7 @@ app_server <- function(input, output, session) {
   # this takes the user to RADx
   # and sets the selectedTaxa variable with the users selections
   # and recieves RADq from RADalign
-  observeEvent(input$continueWithTaxa, {
+  shiny::observeEvent(input$continueWithTaxa, {
     selected_taxa(input$selectTaxa)
 
     print(selected_taxa())
@@ -191,7 +196,7 @@ app_server <- function(input, output, session) {
   })
 
   # this sets the selected_vregions variable with the users selections
-  observeEvent(input$varRegions, {
+  shiny::observeEvent(input$varRegions, {
     selected_vregions(input$varRegions)
     RADqGroups(RADalign::createRADqGroups(selected_vregions(), TRUE))
     print(RADqGroups())
@@ -203,8 +208,8 @@ app_server <- function(input, output, session) {
   })
 
   # Deselect all button
-  observeEvent(input$deselectVarRegions, {
-    updateCheckboxGroupInput(
+  shiny::observeEvent(input$deselectVarRegions, {
+    shiny::updateCheckboxGroupInput(
       session,
       "varRegions",
       selected = character(0)
@@ -215,49 +220,49 @@ app_server <- function(input, output, session) {
   # screen navigation
 
   # this is the event that takes the user back to the main menu
-  observeEvent(input$backToMenu, {
+  shiny::observeEvent(input$backToMenu, {
     screen("menu")
   })
 
   # this takes the user to radport
-  observeEvent(input$download, {
+  shiny::observeEvent(input$download, {
     selected_taxa(input$selectTaxa)
     screen("RADport")
   })
 
   # if user selects metascope on download screen
-  observeEvent(input$continueMetascope, {
+  shiny::observeEvent(input$continueMetascope, {
     download_pipeline("metascope")
     screen("metascope")
   })
 
   # back button from metascope instructions page
-  observeEvent(input$backToMetascopeDownload, {
+  shiny::observeEvent(input$backToMetascopeDownload, {
     screen("metascope")
   })
 
   # MetaScope instructions button goes to the instructions screen
-  observeEvent(input$metascopeInstructionsButton, {
+  shiny::observeEvent(input$metascopeInstructionsButton, {
     screen("metascopeInstructions")
   })
 
   #########################################################################
   # MetaScope screen logic
 
-  observe({
+  shiny::observe({
     enabled <- isTRUE(input$useMetascopeFilters)
     set_metascope_filter_card_state(enabled)
   })
 
-  observeEvent(input$selectGenusFilter, {
+  shiny::observeEvent(input$selectGenusFilter, {
     selected_genera_filter <- input$selectGenusFilter
     n_genera <- if (is.null(selected_genera_filter)) 0 else length(selected_genera_filter)
 
     if (n_genera == 0) {
-      updateCheckboxInput(
+      shiny::updateCheckboxInput(
         session,
         "entireGenusFilter",
-        label = HTML("<i>Filter all members of the selected genus/genera</i>"),
+        label = shiny::HTML("<i>Filter all members of the selected genus/genera</i>"),
         value = FALSE
       )
 
@@ -274,13 +279,13 @@ app_server <- function(input, output, session) {
 
   # this actually puts all of the species options into the MetaScope species selectize
   # so the app can keep track of the selected species there too
-  observeEvent(input$entireGenusFilter, {
-    req(input$selectGenusFilter)
+  shiny::observeEvent(input$entireGenusFilter, {
+    shiny::req(input$selectGenusFilter)
 
     sp <- get_species_from_genera(input$selectGenusFilter)
   })
 
-  observeEvent(input$port, {
+  shiny::observeEvent(input$port, {
     ########## THIS IS WHERE WE DOWNLOAD THE FILES FOR PORTING TO OTHER PIPELINES ############
     if (download_pipeline() == "metascope") {
       if (length(input$selectTaxaFilter) != 0) {
@@ -301,7 +306,7 @@ app_server <- function(input, output, session) {
 
   # this is the meat of the screen rendering
   # it selects the screen that the user is seeing based on the variable above and renders it accordingly
-  output$page <- renderUI({
+  output$page <- shiny::renderUI({
     if (screen() == "radx") {
       radx_screen_ui()
     } else if (screen() == "menu") {
@@ -318,7 +323,7 @@ app_server <- function(input, output, session) {
   #########################################################################
   # plot rendering
 
-  msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$vregionIDs), {
+  msa_plot <- shiny::eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$vregionIDs), {
     print(RADq())
     #make_msa_plotly(
     #  RADq = RADq(),
@@ -332,7 +337,7 @@ app_server <- function(input, output, session) {
   })
 
   # outputs the plot to the card
-  output$visual <- renderPlotly({
+  output$visual <- plotly::renderPlotly({
     msa_plot()
   })
 }

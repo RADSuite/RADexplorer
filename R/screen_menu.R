@@ -1,3 +1,9 @@
+#' Main RADexplorer menu UI
+#'
+#' Creates the main menu page for selecting taxa and launching analysis.
+#'
+#' @return A Shiny UI object.
+#' @export
 menu_screen_ui <- function() {
   # taxa select menu
   page_fillable(

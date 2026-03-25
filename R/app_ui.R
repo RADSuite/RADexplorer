@@ -1,4 +1,9 @@
-# UI
+#' Main UI for RADexplorer
+#'
+#' Creates the Shiny UI for the RADexplorer application.
+#'
+#' @return A Shiny UI object.
+#' @export
 app_ui <- function() {
   shiny::tagList(
     shiny::tags$head(
