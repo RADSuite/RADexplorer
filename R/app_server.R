@@ -21,8 +21,7 @@ app_server <- function(input, output, session) {
   # this keeps track of which menu screen the user is on
   screen <- reactiveVal("menu")
 
-  # this keeps track of the user's selected genera and taxa
-  selected_genera <- reactiveVal(NULL)
+  # this keeps track of the user's selected taxa
   selected_taxa <- reactiveVal(NULL)
   selected_taxa_metascope_filter <- reactiveVal(NULL)
 
@@ -118,20 +117,16 @@ app_server <- function(input, output, session) {
   #########################################################################
   # menu screen setup
 
-  # this puts the genus list into the drop down menu on the taxa select screen
   observeEvent(screen(), {
     req(screen() == "menu")
-
-    shinyjs::disable("entireGenus")
-    updateCheckboxInput(session, "entireGenus", value = FALSE)
 
     if (is.null(selected_taxa())) {
       session$onFlushed(function() {
         updateSelectizeInput(
           session,
-          "selectGenus",
-          selected = "",
-          choices = genus,
+          "selectTaxa",
+          selected = character(0),
+          choices = RADalign::get_all_organisms(),
           server = TRUE
         )
       }, once = TRUE)
@@ -140,34 +135,6 @@ app_server <- function(input, output, session) {
 
   #########################################################################
   # main taxa selection screen
-
-  # this puts the filtered species list into the drop down menu after the genus/genera are selected
-  # this is just a section that changes wording on the taxa select page based on how many genera / species you've selected
-  # simply for aesthetics
-  observeEvent(input$selectGenus, {
-    selected_genera(input$selectGenus)
-    selected_genera_local <- input$selectGenus
-    n_genera <- if (is.null(selected_genera_local)) 0 else length(selected_genera_local)
-
-    if (length(selected_genera_local) == 0) {
-      updateCheckboxInput(
-        session,
-        "entireGenus",
-        label = HTML("<i>Analyze all members of the selected genus/genera</i>"),
-        value = FALSE
-      )
-      shinyjs::disable("entireGenus")
-
-      update_taxa_selectize("selectTaxa", character(0), character(0))
-      return()
-    }
-
-    sp <- get_species_from_genera(selected_genera_local)
-    n_members <- length(sp)
-
-    update_taxa_selectize("selectTaxa", sp, character(0))
-    update_entire_genus_label("entireGenus", n_genera, n_members, mode = "analyze")
-  }, ignoreInit = TRUE)
 
   # selected number of species note under the speciesSelection checkbox
   output$speciesNote <- renderUI({
@@ -190,23 +157,9 @@ app_server <- function(input, output, session) {
     selected_taxa_metascope_filter(input$selectTaxaFilter)
   }, ignoreInit = TRUE)
 
-  # this actually puts all of the species options into the species selectize so radexplorer can keep track of the selected species
-  observeEvent(input$entireGenus, {
-    req(input$selectGenus)
-
-    sp <- get_species_from_genera(input$selectGenus)
-
-    if (isTRUE(input$entireGenus)) {
-      update_taxa_selectize("selectTaxa", sp, sp)
-    } else {
-      update_taxa_selectize("selectTaxa", sp, character(0))
-    }
-  })
-
   # this activates the explore + download buttons on the menu page when the user has selected the taxa of interest
   observe({
-    ok <- length(input$selectGenus) > 0 &&
-      length(input$selectTaxa) > 0 &&
+    ok <- length(input$selectTaxa) > 0 &&
       length(input$selectTaxa) <= 15
 
     shinyjs::toggleState("download", condition = ok)
@@ -220,56 +173,7 @@ app_server <- function(input, output, session) {
   # and sets the selectedTaxa variable with the users selections
   # and recieves RADq from RADalign
   observeEvent(input$continueWithTaxa, {
-    selected_genera(input$selectGenus)
     selected_taxa(input$selectTaxa)
-
-    if ("test all" %in% input$selectTaxa) {
-      test_species <- c(
-        "Pseudomonas aeruginosa", "Brucella suis", "Mycoplasma mobile",
-        "Salmonella enterica", "Escherichia coli", "Geobacter sulfurreducens",
-        "Treponema denticola", "Picrophilus oshimae", "Methylococcus capsulatus",
-        "Methanosarcina acetivorans", "Shigella flexneri", "Chromobacterium violaceum",
-        "Chlamydia pneumoniae", "Chlamydia caviae", "Mannheimia succiniciproducens",
-        "Rickettsia conorii", "Mesomycoplasma hyopneumoniae", "Brucella melitensis",
-        "Clostridium tepidum", "Mesoplasma florum", "Chlorobaculum tepidum",
-        "Rickettsia typhi", "Helicobacter hepaticus", "Clostridium tetani",
-        "Methanopyrus kandleri", "Helicobacter pylori"
-      )
-      selected_taxa(test_species)
-    } else if ("test large" %in% input$selectTaxa) {
-      test_species <- c(
-        "Pseudomonas aeruginosa", "Brucella suis", "Mycoplasma mobile",
-        "Salmonella enterica", "Escherichia coli", "Geobacter sulfurreducens",
-        "Treponema denticola", "Picrophilus oshimae", "Methylococcus capsulatus",
-        "Methanosarcina acetivorans", "Shigella flexneri", "Chromobacterium violaceum",
-        "Chlamydia pneumoniae", "Chlamydia caviae", "Mannheimia succiniciproducens",
-        "Rickettsia conorii", "Mesomycoplasma hyopneumoniae", "Brucella melitensis",
-        "Clostridium tepidum", "Mesoplasma florum", "Chlorobaculum tepidum"
-      )
-      selected_taxa(test_species)
-    } else if ("test medium" %in% input$selectTaxa) {
-      test_species <- c(
-        "Pseudomonas aeruginosa", "Brucella suis", "Mycoplasma mobile",
-        "Salmonella enterica", "Escherichia coli", "Geobacter sulfurreducens",
-        "Treponema denticola", "Picrophilus oshimae", "Methylococcus capsulatus",
-        "Methanosarcina acetivorans", "Shigella flexneri", "Chromobacterium violaceum",
-        "Chlamydia pneumoniae", "Chlamydia caviae", "Mannheimia succiniciproducens"
-      )
-      selected_taxa(test_species)
-    } else if ("test small" %in% input$selectTaxa) {
-      test_species <- c(
-        "Pseudomonas aeruginosa", "Brucella suis", "Mycoplasma mobile",
-        "Salmonella enterica", "Escherichia coli", "Geobacter sulfurreducens",
-        "Treponema denticola", "Picrophilus oshimae", "Methylococcus capsulatus"
-      )
-      selected_taxa(test_species)
-    } else if ("test similar" %in% input$selectTaxa) {
-      test_species <- c(
-        "Clostridium tepidum", "Escherichia coli", "Salmonella enterica",
-        "Shigella flexneri", "Chlamydia caviae"
-      )
-      selected_taxa(test_species)
-    }
 
     print(selected_taxa())
     ########## THIS IS WHERE WE SEND THE SELECTED TAXA TO RADALIGN AND RECIEVE RADq ############
@@ -317,7 +221,6 @@ app_server <- function(input, output, session) {
 
   # this takes the user to radport
   observeEvent(input$download, {
-    selected_genera(input$selectGenus)
     selected_taxa(input$selectTaxa)
     screen("RADport")
   })
@@ -362,7 +265,7 @@ app_server <- function(input, output, session) {
       return()
     }
 
-    sp <- get_species_from_genera(selected_genera_filter)
+    sp <- RADalign::get_all_organisms()
     n_members <- length(sp)
 
     update_taxa_selectize("selectTaxaFilter", sp, character(0))
@@ -375,12 +278,6 @@ app_server <- function(input, output, session) {
     req(input$selectGenusFilter)
 
     sp <- get_species_from_genera(input$selectGenusFilter)
-
-    if (isTRUE(input$entireGenusFilter)) {
-      update_taxa_selectize("selectTaxaFilter", sp, sp)
-    } else {
-      update_taxa_selectize("selectTaxaFilter", sp, character(0))
-    }
   })
 
   observeEvent(input$port, {
@@ -408,7 +305,7 @@ app_server <- function(input, output, session) {
     if (screen() == "radx") {
       radx_screen_ui()
     } else if (screen() == "menu") {
-      menu_screen_ui(genus)
+      menu_screen_ui()
     } else if (screen() == "RADport") {
       radport_screen_ui()
     } else if (screen() == "metascope") {
@@ -422,15 +319,16 @@ app_server <- function(input, output, session) {
   # plot rendering
 
   msa_plot <- eventReactive(list(input$continueWithTaxa, input$varRegions, input$detailedView, input$vregionIDs), {
-    make_msa_plotly(
-      RADq = RADq(),
-      unique = uniqueRADq(),
-      groups = RADqGroups(),
-      uniqueVregions = uniqueVregions(),
-      varRegions = selected_vregions(),
-      detailed = input$detailedView,
-      vregionIDs = input$vregionIDs
-    )
+    print(RADq())
+    #make_msa_plotly(
+    #  RADq = RADq(),
+    #  unique = uniqueRADq(),
+    #  groups = RADqGroups(),
+    #  uniqueVregions = uniqueVregions(),
+    #  varRegions = selected_vregions(),
+    #  detailed = input$detailedView,
+    #  vregionIDs = input$vregionIDs
+    #)
   })
 
   # outputs the plot to the card

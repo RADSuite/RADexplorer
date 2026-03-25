@@ -56,10 +56,12 @@
 [Zimmermannella] alba NBRC 15616
 [Zimmermannella] bifida NBRC 103089
 [Zimmermannella] faecalis ATCC 13722
+Entire Abditi genus
 Abditibacterium utsteinense
 Abiotrophia defectiva
 Absicoccus intestinalis
 Absicoccus porci
+Abyssalbus: Entire
 Abyssalbus ytuae
 Abyssibacter profundi
 Abyssibius alkaniclasticus

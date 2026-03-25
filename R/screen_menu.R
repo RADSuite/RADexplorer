@@ -1,4 +1,4 @@
-menu_screen_ui <- function(genus) {
+menu_screen_ui <- function() {
   # taxa select menu
   page_fillable(
     title = "RADexplorer",
@@ -36,62 +36,25 @@ menu_screen_ui <- function(genus) {
             style = "overflow:visible;",
             div(
               style = "display:flex; flex-direction:column; gap:0px; overflow:visible;",
-              # genus selection
-              tags$div(
+              div(
                 style = "overflow:visible;",
-                tags$label(
-                  `for` = "selectGenus",
-                  style = "display:block; margin-bottom:0px;",
-                  tags$div("Select genus or genera to analyze:"),
-                  tags$div(
-                    style = "font-size:13px; margin-top:0px;",
-                    class = "checkbox",
-                    tags$label(
-                      checkboxInput(
-                        "entireGenus",
-                        label = HTML("<i>Analyze all members of the selected genus</i>"),
-                        value = FALSE
-                      )
-                    )
-                  )
-                ),
                 selectizeInput(
-                  "selectGenus",
-                  label = NULL,
-                  choices = genus,
+                  "selectTaxa",
+                  "Select species to analyze:",
+                  choices = character(0),
                   multiple = TRUE,
                   options = list(
                     placeholder = "Type to search",
                     maxOptions = 10000,
+                    closeAfterSelect = FALSE,
                     openOnFocus = FALSE,
                     dropdownParent = "body"
                   ),
                   width = "100%"
-                )
-              ),
-              # species select - only shows up after you select a genus or genera
-              conditionalPanel(
-                condition = "input.selectGenus && input.selectGenus.length > 0",
+                ),
                 div(
-                  style = "overflow:visible;",
-                  selectizeInput(
-                    "selectTaxa",
-                    "Select species to analyze:",
-                    choices = character(0),
-                    multiple = TRUE,
-                    options = list(
-                      placeholder = "Type to search",
-                      maxOptions = 10000,
-                      closeAfterSelect = FALSE,
-                      openOnFocus = FALSE,
-                      dropdownParent = "body"
-                    ),
-                    width = "100%"
-                  ),
-                  div(
-                    style = "font-size:13px; margin-top:-6px;",
-                    uiOutput("speciesNote")
-                  )
+                  style = "font-size:13px; margin-top:-6px;",
+                  uiOutput("speciesNote")
                 )
               )
             )
