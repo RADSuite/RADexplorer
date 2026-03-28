@@ -28,7 +28,6 @@ standardize_plot_inputs <- function(RADq, unique, groups, varRegions) {
 
   # create RADqtiles, keep only the RADq columns used for plotting
   RADqtiles <- RADq |>
-    dplyr::filter(variable_region %in% varRegions) |>
     dplyr::distinct(species, copy_id, variable_region, seq_id) |>
     dplyr::group_by(species) |>
     dplyr::mutate(

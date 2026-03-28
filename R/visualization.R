@@ -50,6 +50,7 @@ make_msa_plotly <- function(
       layout_data = layout_data,
       vr_levels_all = vr_levels_all,
       unique = prep$unique,
+      selected_vr = selected_vr,
       vregionIDs = vregionIDs
     )
   } else {

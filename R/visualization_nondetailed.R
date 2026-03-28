@@ -4,22 +4,15 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
 
   # plotting inputs
   groups_plot <- unique |>
-    dplyr::select(taxa, dplyr::any_of(selected_vr)) |>
-    tidyr::pivot_longer(
-      cols = -taxa,
-      names_to = "vregion",
-      values_to = "group"
-    ) |>
+    dplyr::select(taxa, dplyr::any_of(vr_levels_all)) |>
+    tidyr::pivot_longer(-taxa, names_to = "vregion", values_to = "group") |>
     dplyr::mutate(
       taxa = as.character(taxa),
       vregion = factor(vregion, levels = vr_levels_all),
       group = as.character(group)
     ) |>
     dplyr::group_by(vregion) |>
-    dplyr::mutate(
-      group_id = match(group, unique(group)),
-      vx = match(vregion, vr_levels_all)
-    ) |>
+    dplyr::mutate(group_id = match(group, unique(group)), vx = match(vregion, vr_levels_all)) |>
     dplyr::ungroup()
 
   # plotting constants
@@ -44,31 +37,38 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
     y = seq(1, by = 1 + gap, length.out = length(taxa_levels))
   )
 
-  groups_plot <- groups_plot |>
-    dplyr::left_join(y_map, by = "taxa")
+  groups_plot <- dplyr::left_join(groups_plot, y_map, by = "taxa")
 
   # repeated header labels
-  header_rows <- tibble::tibble(
-    y_header = y_map$y[seq(1, nrow(y_map), by = 1)] - 1.4
-  ) |>
-    tidyr::crossing(
-      tibble::tibble(
-        vregion = vr_levels_all,
-        vx = seq_along(vr_levels_all)
+  header_rows <- tidyr::crossing(
+    tibble::tibble(y_header = y_map$y - 1.4),
+    tibble::tibble(vregion = vr_levels_all, vx = seq_along(vr_levels_all))
+  )
+
+  # highlighted variable-region columns
+  selected_vr_rects <- if (nrow(y_map) > 0) {
+    tibble::tibble(vx = match(selected_vr, vr_levels_all)) |>
+      dplyr::filter(!is.na(vx)) |>
+      dplyr::distinct() |>
+      dplyr::transmute(
+        xmin = vx - 0.48,
+        xmax = vx + 0.48,
+        ymin = min(header_rows$y_header) - 0.1,
+        ymax = max(y_map$y) + 0.8
       )
-    )
+  } else {
+    tibble::tibble(xmin = numeric(), xmax = numeric(), ymin = numeric(), ymax = numeric())
+  }
 
   # axis label data
   y_breaks <- y_map |>
     dplyr::left_join(
       RADq |>
-        dplyr::filter(variable_region %in% selected_regions_clean) |>
         dplyr::distinct(species, copy_id) |>
         dplyr::group_by(species) |>
         dplyr::mutate(copy_num = dplyr::dense_rank(copy_id)) |>
         dplyr::ungroup() |>
-        dplyr::transmute(taxa = species, copy_num) |>
-        dplyr::distinct(taxa, copy_num) |>
+        dplyr::distinct(taxa = species, copy_num) |>
         dplyr::count(taxa, name = "n_copies"),
       by = "taxa"
     ) |>
@@ -95,6 +95,14 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
 
   # base plot
   p_msa <- ggplot2::ggplot() +
+    ggplot2::geom_rect(
+      data = selected_vr_rects,
+      ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      inherit.aes = FALSE,
+      fill = "gold",
+      alpha = 0.75,
+      color = NA
+    ) +
     ggplot2::geom_text(
       data = header_rows,
       ggplot2::aes(x = vx, y = y_header + 0.25, label = vregion),
@@ -125,8 +133,7 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       ggplot2::geom_segment(
         data = group_bracket_df,
         ggplot2::aes(y = y_start, yend = y_end),
-        x = bracket_x,
-        xend = bracket_x,
+        x = bracket_x, xend = bracket_x,
         inherit.aes = FALSE,
         color = "red3",
         linewidth = 0.75,
@@ -135,8 +142,7 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       ggplot2::geom_segment(
         data = group_bracket_df,
         ggplot2::aes(y = y_start, yend = y_start),
-        x = bracket_x,
-        xend = bracket_x + bracket_arm,
+        x = bracket_x, xend = bracket_x + bracket_arm,
         inherit.aes = FALSE,
         color = "red3",
         linewidth = 0.75,
@@ -145,8 +151,7 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
       ggplot2::geom_segment(
         data = group_bracket_df,
         ggplot2::aes(y = y_end, yend = y_end),
-        x = bracket_x,
-        xend = bracket_x + bracket_arm,
+        x = bracket_x, xend = bracket_x + bracket_arm,
         inherit.aes = FALSE,
         color = "red3",
         linewidth = 0.75,
@@ -206,11 +211,8 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
     ggplot2::labs(x = NULL, y = NULL)
 
   # plot height
-  plot_height <- max(200, 80 + max(y_map$y) * 25)
+  plot_height <- max(200, 120 + max(y_map$y) * 32)
 
   # return plot and height
-  list(
-    plot = p_msa,
-    plot_height = plot_height
-  )
+  list(plot = p_msa, plot_height = plot_height)
 }

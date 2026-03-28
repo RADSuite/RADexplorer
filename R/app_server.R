@@ -125,11 +125,14 @@ app_server <- function(input, output, session) {
   # note under the taxa selector
   output$speciesNote <- shiny::renderUI({
     n_selected <- length(input$selectTaxa %||% character(0))
+    estimated_time <- as.character(n_selected * 3.58 + 6)
 
     shiny::HTML(paste0(
       "<p><i>You have selected ",
       n_selected,
-      " taxa.",
+      " taxa. Estimated processing time: ",
+      estimated_time,
+      " seconds.",
       "</i></p>"
     ))
   })
