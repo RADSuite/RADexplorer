@@ -109,13 +109,19 @@ app_server <- function(input, output, session) {
   }
 
   # reloads the taxa dropdown whenever user returns to the menu
+  # reloads the taxa dropdown whenever user returns to the menu
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
+
+    organisms <- sort(unique(RADalign::get_all_organisms()))
 
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "selectTaxa",
-      choices = sort(unique(RADalign::get_all_organisms())),
+      choices = organisms,
+      choicesOpt = list(
+        style = ifelse(grepl(" - All Species$", organisms), "font-weight:700;", "")
+      ),
       selected = selected_taxa()
     )
   }, ignoreInit = FALSE)
