@@ -127,7 +127,7 @@ build_species_layout <- function(RADqtiles, groups_info, gap = 2) {
     dplyr::left_join(copy_layout, by = c("species", "copy_num")) |>
     dplyr::mutate(
       y = start + copy_row - 1,
-      hover_text = paste0(species, " copy number ", copy_num)
+      hover_text = paste0(species, " copy #", copy_num, " ", variable_region_clean)
     )
 
   #helper dfs for creating the grouping brackets
@@ -198,8 +198,9 @@ make_plotly_layout <- function(p_msa, plot_height) {
 
   # final plotly layout
   plotly::ggplotly(p_msa, tooltip = c("text", "seq_id")) |>
+    plotly::config(displayModeBar = FALSE) |>
     plotly::layout(
-      margin = list(l = 220, r = 30, t = 140, b = 40),
+      margin = list(l = 100, r = 30, t = 40, b = 20),
       height = plot_height,
       annotations = list(
         list(

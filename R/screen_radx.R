@@ -6,7 +6,7 @@ radx_screen_ui <- function() {
       # variable region select
       shiny::checkboxGroupInput(
         "varRegions",
-        "Select all 16S gene variable regions to include:",
+        "Select all 16S rRNA gene v-regions for analysis:",
         choices = paste0("V", 1:9),
         selected = c("V4")
       ),
@@ -30,9 +30,18 @@ radx_screen_ui <- function() {
       )
     ),
     bslib::card(
-      shiny::conditionalPanel(
-        "input.continueWithTaxa > 0",
-        plotly::plotlyOutput("visual", height = "650px")
+      p(
+        "All 16S rRNA gene copies for the selected taxa are shown below. ",
+        "Within each v-region column, color represents identical sequences. ",
+        "Select v-regions (left sidebar) for analysis. ",
+        "A green checkmark next to a taxon means it can be identified using the selected v-region(s). ",
+        "Taxa within a red bracket cannot be distinguished from eachother with the selected v-region(s). "
+      ),
+      bslib::card(
+        shiny::conditionalPanel(
+          "input.continueWithTaxa > 0",
+          plotly::plotlyOutput("visual", height = "650px")
+        )
       )
     )
   )

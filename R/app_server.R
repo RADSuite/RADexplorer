@@ -157,7 +157,6 @@ app_server <- function(input, output, session) {
   #########################################################################
   # RADx flow
 
-  # sends selected taxa to RADalign and opens the explorer
   shiny::observeEvent(input$continueWithTaxa, {
     taxa_now <- isolate(selected_taxa())
     vregions_now <- isolate(selected_vregions())

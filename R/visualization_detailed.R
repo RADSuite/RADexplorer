@@ -158,8 +158,8 @@ build_detailed_plot <- function(layout_data, vr_levels_all, unique, selected_vr,
   plot_height <- min(
     1400,
     max(
-      280,
-      110 + 30 * n_rows
+      150,
+      110 + 25 * n_rows
     )
   )
 
