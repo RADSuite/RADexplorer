@@ -46,8 +46,18 @@ menu_screen_ui <- function() {
                   placeholder = "Type to search",
                   maxOptions = 1000,
                   closeAfterSelect = FALSE,
+                  hideSelected = FALSE,
                   openOnFocus = TRUE,
-                  dropdownParent = "body"
+                  dropdownParent = "body",
+                  render = I("{
+                    option: function(item, escape) {
+                      var label = item.label || item.text || '';
+                      if (label.match(/ - All Species$/)) {
+                        return '<div style=\"padding:2px 12px;\"><strong>' + escape(label) + '</strong></div>';
+                      }
+                      return '<div style=\"padding:2px 12px;\">' + escape(label) + '</div>';
+                    }
+                  }")
                 ),
                 width = "100%"
               )

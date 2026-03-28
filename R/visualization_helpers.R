@@ -198,9 +198,8 @@ make_plotly_layout <- function(p_msa, plot_height) {
 
   # final plotly layout
   plotly::ggplotly(p_msa, tooltip = c("text", "seq_id")) |>
-    plotly::config(displayModeBar = FALSE) |>
     plotly::layout(
-      margin = list(l = 100, r = 30, t = 40, b = 20),
+      margin = list(l = 120, r = 30, t = 40, b = 20),
       height = plot_height,
       annotations = list(
         list(
