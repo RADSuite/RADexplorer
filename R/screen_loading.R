@@ -11,7 +11,7 @@ loading_screen_ui <- function() {
       ",
       h3("Loading RADexplorer..."),
       div(class = "spinner-border", role = "status"),
-      p("Performing multiple sequence alignments and building visualization.")
+      p("Performing multiple sequence alignments and building visualization...")
     )
   )
 }

@@ -47,37 +47,7 @@ menu_screen_ui <- function() {
                   maxOptions = 1000,
                   closeAfterSelect = FALSE,
                   openOnFocus = TRUE,
-                  dropdownParent = "body",
-                  searchField = c("label", "group", "search_text"),
-
-                  onType = I("function(str) {
-                    this._lastQuery = str;
-                  }"),
-
-                  onItemAdd = I("function(value) {
-                    var self = this;
-                    var q = self._lastQuery || '';
-                    setTimeout(function() {
-                      self.setTextboxValue(q);
-                      self.refreshOptions(true);
-                      self.open();
-                    }, 0);
-                  }"),
-
-                  render = I("{
-                    option: function(item, escape) {
-                      if (item.is_genus) {
-                        return '<div><strong>' + escape(item.label) + '</strong></div>';
-                      }
-                      return '<div style=\"padding-left:1.2em;\">' + escape(item.label) + '</div>';
-                    },
-                    item: function(item, escape) {
-                      if (item.is_genus) {
-                        return '<div><strong>' + escape(item.label) + '</strong></div>';
-                      }
-                      return '<div>' + escape(item.label) + '</div>';
-                    }
-                  }")
+                  dropdownParent = "body"
                 ),
                 width = "100%"
               )

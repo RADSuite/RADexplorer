@@ -22,10 +22,8 @@ app_server <- function(input, output, session) {
   genus_species <- trimws(genus_species)
   genus_species <- genus_species[nzchar(genus_species)]
 
-  # full taxa list + dropdown choices
+  # full taxa list
   all_organisms <- sort(unique(RADalign::get_all_organisms()))
-  genus_lookup <- sub(" .*", "", all_organisms)
-  taxa_choices <- make_taxa_choices(all_organisms)
 
   # current screen
   screen <- shiny::reactiveVal("menu")
@@ -115,14 +113,9 @@ app_server <- function(input, output, session) {
     shiny::updateSelectizeInput(
       session,
       "selectTaxa",
-      choices = taxa_choices,
+      choices = all_organisms,
       selected = selected_taxa(),
-      server = TRUE,
-      options = list(
-        valueField = "value",
-        labelField = "label",
-        searchField = c("label", "group", "search_text")
-      )
+      server = TRUE
     )
   }, ignoreInit = FALSE)
 
@@ -141,36 +134,9 @@ app_server <- function(input, output, session) {
     ))
   })
 
-  # expands genus rows into all matching species
+  # stores selected taxa
   shiny::observeEvent(input$selectTaxa, {
-    vals <- input$selectTaxa %||% character(0)
-
-    if (!length(vals)) {
-      selected_taxa(character(0))
-      return()
-    }
-
-    genus_tags <- grep(" - All Species$", vals, value = TRUE)
-
-    if (!length(genus_tags)) {
-      selected_taxa(vals)
-      return()
-    }
-
-    genera <- sub(" - All Species$", "", genus_tags)
-    species_to_add <- all_organisms[genus_lookup %in% genera]
-    new_vals <- unique(c(setdiff(vals, genus_tags), species_to_add))
-
-    if (!identical(sort(vals), sort(new_vals))) {
-      shiny::updateSelectizeInput(
-        session,
-        "selectTaxa",
-        selected = new_vals,
-        server = TRUE
-      )
-    }
-
-    selected_taxa(new_vals)
+    selected_taxa(input$selectTaxa %||% character(0))
   }, ignoreInit = TRUE)
 
   # stores metascope filter taxa
