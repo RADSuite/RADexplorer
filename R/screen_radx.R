@@ -6,7 +6,7 @@ radx_screen_ui <- function() {
       # variable region select
       shiny::checkboxGroupInput(
         "varRegions",
-        "Select all 16S rRNA gene v-regions for analysis:",
+        "Select v-regions for analysis:",
         choices = paste0("V", 1:9),
         selected = c("V4")
       ),
@@ -45,9 +45,11 @@ radx_screen_ui <- function() {
         )
       )
     ),
-    shiny::conditionalPanel(
-      "input.continueWithTaxa > 0",
-      plotly::plotlyOutput("visual", height = "650px")
+    bslib::card(
+      shiny::conditionalPanel(
+        "input.continueWithTaxa > 0",
+        plotly::plotlyOutput("visual", height = "650px")
+      )
     )
   )
 }
