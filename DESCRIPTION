@@ -13,4 +13,5 @@ Imports:
     bslib,
     plotly,
     shiny,
-    shinyjs
+    shinyjs,
+    shinyWidgets

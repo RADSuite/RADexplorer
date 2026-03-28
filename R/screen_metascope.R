@@ -1,59 +1,59 @@
 metascope_screen_ui <- function(genus, species) {
   # Metascope download menu
-  page_fillable(
+  bslib::page_fillable(
     title = "RADport to MetaScope",
     fillable = TRUE,
-    useShinyjs(),
-    div(
+    shinyjs::useShinyjs(),
+    htmltools::div(
       style = "display:flex; align-items:flex-start; justify-content:center; padding-top:50px; padding-bottom:50px; overflow:visible;",
-      div(
+      htmltools::div(
         style = "display:flex; gap:24px; width:min(900px, 95vw); overflow:visible; align-items:stretch;",
-        card(
+        bslib::card(
           style = "flex:1 1 0; overflow:visible;",
-          card_body(
+          bslib::card_body(
             style = "overflow:visible;",
-            div(
+            htmltools::div(
               style = "display:flex; flex-direction:column; gap:16px; overflow:visible;",
-              div(
+              htmltools::div(
                 style = "display:flex; gap:12px; width:100%;",
-                h4("RADport", style = "margin:0;"),
-                actionButton("backToMenu", "Back", style = "margin-left:auto;")
+                htmltools::h4("RADport", style = "margin:0;"),
+                shiny::actionButton("backToMenu", "Back", style = "margin-left:auto;")
               ),
-              div(
+              htmltools::div(
                 style = "overflow:visible;",
-                checkboxInput(
+                shiny::checkboxInput(
                   "useMetascopeFilters",
                   "Use MetaScope filters",
                   value = FALSE
                 ),
-                card(
+                bslib::card(
                   id = "metascopeFilterCard",
                   style = "opacity:0.5; background-color:#f8f9fa; overflow:visible;",
-                  p("To create MetaScope filters, select taxa below."),
+                  htmltools::p("To create MetaScope filters, select taxa below."),
                   shinyjs::disabled(
-                    tags$div(
+                    htmltools::tags$div(
                       id = "metascopeFilterControls",
                       style = "overflow:visible;",
 
-                      tags$div(
+                      htmltools::tags$div(
                         style = "overflow:visible;",
-                        tags$label(
+                        htmltools::tags$label(
                           `for` = "selectGenusFilter",
                           style = "display:block; margin-bottom:0px;",
-                          tags$div("Select genus or genera to filter:"),
-                          tags$div(
+                          htmltools::tags$div("Select genus or genera to filter:"),
+                          htmltools::tags$div(
                             style = "font-size:13px; margin-top:0px;",
                             class = "checkbox",
-                            tags$label(
-                              checkboxInput(
+                            htmltools::tags$label(
+                              shiny::checkboxInput(
                                 "entireGenusFilter",
-                                label = HTML("<i>Filter all members of the selected genus</i>"),
+                                label = shiny::HTML("<i>Filter all members of the selected genus</i>"),
                                 value = FALSE
                               )
                             )
                           )
                         ),
-                        selectizeInput(
+                        shiny::selectizeInput(
                           "selectGenusFilter",
                           label = NULL,
                           choices = genus,
@@ -68,11 +68,11 @@ metascope_screen_ui <- function(genus, species) {
                         )
                       ),
 
-                      conditionalPanel(
+                      shiny::conditionalPanel(
                         condition = "input.useMetascopeFilters && input.selectGenusFilter && input.selectGenusFilter.length > 0",
-                        div(
+                        htmltools::div(
                           style = "overflow:visible;",
-                          selectizeInput(
+                          shiny::selectizeInput(
                             "selectTaxaFilter",
                             "Select species to filter:",
                             choices = character(0),
@@ -92,10 +92,10 @@ metascope_screen_ui <- function(genus, species) {
                   )
                 )
               ),
-              div(
+              htmltools::div(
                 style = "display:flex; flex-direction:column; gap:12px; width:100%;",
-                actionButton("port", "Download RADport files", style = "width:100%;"),
-                actionButton(
+                shiny::actionButton("port", "Download RADport files", style = "width:100%;"),
+                shiny::actionButton(
                   "metascopeInstructionsButton",
                   "MetaScope RADport Instructions",
                   style = "width:100%;"

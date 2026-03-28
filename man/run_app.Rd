@@ -2,10 +2,13 @@
 % Please edit documentation in R/run_app.R
 \name{run_app}
 \alias{run_app}
-\title{Run the RADexplorer App}
+\title{Run the RADexplorer application}
 \usage{
 run_app()
 }
+\value{
+A Shiny app object.
+}
 \description{
-Run the RADexplorer App
+Launches the Shiny application for RADexplorer.
 }
