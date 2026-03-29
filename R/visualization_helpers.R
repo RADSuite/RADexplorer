@@ -64,8 +64,8 @@ standardize_plot_inputs <- function(RADq, unique, groups, varRegions) {
 
 #' Build the species_layout dataframe for the visualization
 #'
-#' @param RADqtiles
-#' @param groups_info
+#' @param RADqtiles ...
+#' @param groups_info ...
 #' @param gap A changeable int that determines the vertical gap between species in a column
 #'
 #' @return a list containing species_layout, copy_layout, RADqtiles, y_breaks, group_bracket_df, and unique_taxa_df dfs

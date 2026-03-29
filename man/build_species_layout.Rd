@@ -7,6 +7,10 @@
 build_species_layout(RADqtiles, groups_info, gap = 2)
 }
 \arguments{
+\item{RADqtiles}{...}
+
+\item{groups_info}{...}
+
 \item{gap}{A changeable int that determines the vertical gap between species in a column}
 }
 \value{

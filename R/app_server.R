@@ -121,7 +121,8 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
 
-    organisms <- sort(unique(RADalign::get_all_organisms()))
+    # organisms <- sort(unique(RADalign::get_all_organisms())) # This should not be here. This function should be written in RADexplorer not RADalign
+    organisms <- load_organism_selection_list(accessions_table)
 
     shinyWidgets::updatePickerInput(
       session = session,
