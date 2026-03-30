@@ -44,7 +44,7 @@ menu_screen_ui <- function() {
                 `selected-text-format` = "count > 8",
                 `live-search-placeholder` = "Type to search",
                 `none-selected-text` = "Type to search",
-                size = 10,
+                size = 8,
                 `dropup-auto` = FALSE,
                 container = "body"
               )
