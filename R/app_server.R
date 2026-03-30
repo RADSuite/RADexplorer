@@ -93,7 +93,7 @@ app_server <- function(input, output, session) {
   # note under the taxa selector
   output$speciesNote <- shiny::renderUI({
     n_selected <- length(expand_selected_taxa(selected_taxa()))
-    estimated_time <- n_selected * 3.58 + 6
+    estimated_time <- n_selected + 6
 
     time_value <- if (estimated_time >= 60) {
       round(estimated_time / 60, 2)

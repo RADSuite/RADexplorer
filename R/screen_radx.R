@@ -29,6 +29,56 @@ radx_screen_ui <- function() {
         shiny::actionButton("backToMenu", "Back", style = "flex:1;")
       )
     ),
+    tags$style(HTML("
+      .radx-visual-wrap {
+        position: relative;
+        min-height: 650px;
+      }
+
+      .radx-visual-output {
+        transition: opacity 0.15s ease;
+      }
+
+      .radx-visual-loader {
+        display: none;
+        position: absolute;
+        inset: 0;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 10;
+        text-align: center;
+      }
+
+      .radx-visual-wrap:has(.radx-visual-output .recalculating) .radx-visual-loader {
+        display: flex;
+      }
+
+      .radx-visual-wrap:has(.radx-visual-output .recalculating) .radx-visual-output {
+        opacity: 0;
+      }
+
+      .radx-spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #d9d9d9;
+        border-top: 5px solid #2c7c31;
+        border-radius: 50%;
+        animation: radx-spin 0.8s linear infinite;
+      }
+
+      @keyframes radx-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .radx-loader-text {
+        font-size: 15px;
+        color: #444;
+      }
+    ")),
     bslib::accordion(
       id = "radx_instructions",
       open = TRUE,
@@ -54,8 +104,25 @@ radx_screen_ui <- function() {
     bslib::card(
       shiny::conditionalPanel(
         "input.continueWithTaxa > 0",
-        plotly::plotlyOutput("visual", height = "650px")
+        radx_loading_plot("visual", height = "650px")
       )
     )
   )
 }
+
+radx_loading_plot <- function(id, height = "650px") {
+  shiny::div(
+    class = "radx-visual-wrap",
+    shiny::div(
+      class = "radx-visual-output",
+      plotly::plotlyOutput(id, height = height)
+    ),
+    shiny::div(
+      class = "radx-visual-loader",
+      shiny::div(class = "radx-spinner"),
+      shiny::div(class = "radx-loader-text", "Loading visualization...")
+    )
+  )
+}
+
+

@@ -35,11 +35,12 @@ menu_screen_ui <- function() {
               label = "Select species to analyze:",
               choices = NULL,
               multiple = TRUE,
+
               width = "100%",
               options = shinyWidgets::pickerOptions(
                 `live-search` = TRUE,
                 `live-search-style` = "contains",
-                `actions-box` = FALSE,
+                `actions-box` = TRUE,
                 `selected-text-format` = "count > 8",
                 `live-search-placeholder` = "Type to search",
                 `none-selected-text` = "Type to search",
