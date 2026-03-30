@@ -163,12 +163,9 @@ build_detailed_plot <- function(layout_data, vr_levels_all, unique, selected_vr,
 
   total_copy_rows <- nrow(detailed_backbone_df)
 
-  plot_height <- min(
-    3500,
-    max(
-      500,
-      140 + 24 * total_copy_rows + 18 * n_species + 35 * max_copies_per_species
-    )
+  plot_height <- max(
+    500,
+    140 + 24 * total_copy_rows + 18 * n_species + 35 * max_copies_per_species
   )
 
   # return plot and height

@@ -169,12 +169,9 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
 
   # plot height
   n_taxa <- nrow(y_map)
-  plot_height <- min(
-    1400,
-    max(
-      200,
-      110 + 60 * n_taxa
-    )
+  plot_height <- max(
+    200,
+    110 + 60 * n_taxa
   )
 
   # return plot and height
