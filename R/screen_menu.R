@@ -56,11 +56,7 @@ menu_screen_ui <- function() {
               options = shinyWidgets::pickerOptions(
                 `live-search` = TRUE,
                 `live-search-style` = "contains",
-<<<<<<< HEAD
-                `actions-box` = FALSE,
-=======
                 `actions-box` = TRUE,
->>>>>>> refs/remotes/origin/main
                 `selected-text-format` = "count > 8",
                 `live-search-placeholder` = "Type to search",
                 `none-selected-text` = "Type to search",

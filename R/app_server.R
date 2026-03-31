@@ -14,23 +14,6 @@ app_server <- function(input, output, session) {
   base_dir <- system.file("app", package = "RADexplorer")
   shiny::addResourcePath("app", base_dir)
 
-<<<<<<< HEAD
-  # dropdown support files
-  accessions_table <- RADalign::get_accessions_df()
-  genus <- accessions_table[["genus"]]
-  # genus <- readLines(file.path(base_dir, "taxa", "genus.txt"), warn = FALSE)
-  # genus <- trimws(genus)
-  # genus <- genus[nzchar(genus)]
-  
-  genus_species <- accessions_table[["organism"]]
-  # genus_species <- readLines(file.path(base_dir, "taxa", "Genusspecies.txt"), warn = FALSE)
-  # genus_species <- trimws(genus_species)
-  # genus_species <- genus_species[nzchar(genus_species)]
-
-  # current screen
-=======
-  # app state
->>>>>>> refs/remotes/origin/main
   screen <- shiny::reactiveVal("menu")
   selected_taxa <- shiny::reactiveVal(character(0))
   selected_vregions <- shiny::reactiveVal(c("V4"))
@@ -53,43 +36,6 @@ app_server <- function(input, output, session) {
   expand_selected_taxa <- function(taxa) {
     taxa <- taxa %||% character(0)
 
-<<<<<<< HEAD
-    if (enabled) {
-      shinyjs::removeClass("metascopeFilterCard", "text-muted")
-      shinyjs::runjs("
-        var el = document.getElementById('metascopeFilterCard');
-        if (el) {
-          el.style.opacity = '1';
-          el.style.backgroundColor = '';
-        }
-      ")
-    } else {
-      shinyjs::addClass("metascopeFilterCard", "text-muted")
-      shinyjs::runjs("
-        var el = document.getElementById('metascopeFilterCard');
-        if (el) {
-          el.style.opacity = '0.5';
-          el.style.backgroundColor = '#f8f9fa';
-        }
-      ")
-    }
-  }
-
-  # helper to get all species from selected genera
-  get_species_from_genera <- function(selected_genera = character(0)) { # Setting default in arg declaration
-    if (length(selected_genera) == 0) {
-      return(character(0))
-    }
-    
-    accessions_table |>
-      (function(x) x[accessions_table[["genus"]] == selected_genera])() |>
-      (function(x) x[["organism"]])() |>
-      unique() |>
-      sort()
-    # genus_lookup <- sub(" .*$", "", genus_species)
-    # sort(genus_species[genus_lookup %in% 
-    #                      selected_genera])
-=======
     if (length(taxa) == 0) {
       return(character(0))
     }
@@ -103,7 +49,6 @@ app_server <- function(input, output, session) {
     )
 
     sort(unique(c(direct_taxa, genus_taxa)))
->>>>>>> refs/remotes/origin/main
   }
 
   # helper for RADx search
