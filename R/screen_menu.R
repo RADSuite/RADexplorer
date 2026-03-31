@@ -38,7 +38,7 @@ menu_screen_ui <- function() {
               width = "100%",
               options = shinyWidgets::pickerOptions(
                 `live-search` = TRUE,
-                `live-search-style` = "startsWith",
+                `live-search-style` = "contains",
                 `actions-box` = FALSE,
                 `selected-text-format` = "count > 8",
                 `live-search-placeholder` = "Type to search",
