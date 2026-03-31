@@ -25,6 +25,8 @@ app_server <- function(input, output, session) {
   radx_search_display_taxa <- shiny::reactiveVal(character(0))
   # genus-wide dropdown pattern
   genus_all_species_pattern <- " - All Species(?: \\([0-9]+\\))?$"
+  # get accessions table from RADalign
+  accessions_table <- RADalign::get_accessions_df()
   # helper to detect genus-wide dropdown options
   is_genus_all_species <- function(x) {
     grepl(genus_all_species_pattern, x)
@@ -64,7 +66,7 @@ app_server <- function(input, output, session) {
   # rebuild taxa picker when entering menu
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
-
+    
     organisms <- load_organism_selection_list(accessions_table)
 
     shinyWidgets::updatePickerInput(
