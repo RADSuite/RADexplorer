@@ -259,6 +259,14 @@ make_plotly_layout <- function(p_msa, plot_height) {
     )
 }
 
+#' Build tile palette
+#'
+#' @param ids list of ids for visual tiles
+#' @param seed int used as a seed for random assignment
+#'
+#' @return a vector of colors (in HCL), one color randomly assigned per tile
+#' @export
+#'
 build_tile_palette <- function(ids, seed = NULL) {
   tile_levels <- sort(unique(as.character(ids)))
 
@@ -277,6 +285,16 @@ build_tile_palette <- function(ids, seed = NULL) {
   tile_palette
 }
 
+#' Build selected v-region rectangles
+#'
+#' @param selected_vr list of selected v-regions
+#' @param vr_levels_all list of all v-regions
+#' @param ymin int for the top of the rectangles
+#' @param ymax int for the bottom of the rectangles
+#'
+#' @return a tibble with x and y coordinates in order to draw each of the selected v-region rectangles
+#' @export
+#'
 build_selected_vr_rects <- function(selected_vr, vr_levels_all, ymin, ymax) {
   tibble::tibble(vx = match(selected_vr, vr_levels_all)) |>
     dplyr::filter(!is.na(vx)) |>
@@ -289,6 +307,14 @@ build_selected_vr_rects <- function(selected_vr, vr_levels_all, ymin, ymax) {
     )
 }
 
+#' Add selected v-region rectangles
+#'
+#' @param p ggplot object, the current plot
+#' @param selected_vr_rects a tibble with x and y coordinates in order to draw each of the selected v-region rectangles
+#'
+#' @return p, a ggplot object, with the added golden rectangles drawn at the coordinates provided in selected_vr_rects
+#' @export
+#'
 add_selected_vr_rects <- function(p, selected_vr_rects) {
   if (nrow(selected_vr_rects) == 0) {
     return(p)
@@ -305,6 +331,15 @@ add_selected_vr_rects <- function(p, selected_vr_rects) {
     )
 }
 
+#' Add group brackets
+#'
+#' @param p ggplot object, the current plot
+#' @param group_bracket_df a data frame with y coordinates for each of the grouping brackets
+#' @param bracket_x
+#'
+#' @return p, a ggplot object, with the added red brackets for each of the grouped taxa
+#' @export
+#'
 add_group_brackets <- function(p, group_bracket_df, bracket_x, bracket_arm) {
   if (nrow(group_bracket_df) == 0) {
     return(p)
@@ -340,6 +375,16 @@ add_group_brackets <- function(p, group_bracket_df, bracket_x, bracket_arm) {
     )
 }
 
+#' Add unique taxa checkmarks
+#'
+#' @param p ggplot object, the current plot
+#' @param unique_taxa_df a data frame with all unique taxa
+#' @param x int -- the x coordinate of the checkmarks on the plot
+#' @param y_col lsit of y coordinates for each of the checkmarks
+#'
+#' @return p, a ggplot object, with the added green checkmarks for each of the grouped taxa
+#' @export
+#'
 add_unique_taxa_checks <- function(p, unique_taxa_df, x, y_col) {
   if (nrow(unique_taxa_df) == 0) {
     return(p)
@@ -356,6 +401,18 @@ add_unique_taxa_checks <- function(p, unique_taxa_df, x, y_col) {
     )
 }
 
+#' Add tile ids
+#'
+#' @param p ggplot object, the current plot
+#' @param data a data frame with the tiles and their ids
+#' @param x_col -- x coordinates for each of the 9 v-region columns
+#' @param y_col lsit of y coordinates for each of the tile rows
+#' @param enabled boolean for whether tile ids are enabled by the user
+#' @param size int -- font size
+#'
+#' @return p, a ggplot object, with the added green checkmarks for each of the grouped taxa
+#' @export
+#'
 add_tile_ids <- function(p, data, label_col, x_col, y_col, enabled, size) {
   if (!isTRUE(enabled)) {
     return(p)

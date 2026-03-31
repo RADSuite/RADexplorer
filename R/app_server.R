@@ -210,7 +210,7 @@ app_server <- function(input, output, session) {
   })
 
   shiny::observeEvent(input$download, {
-    screen("RADport")
+    RADalign::download_RAD_data("MetaScope", selected_taxa())
   })
 
   # choose which page to show
