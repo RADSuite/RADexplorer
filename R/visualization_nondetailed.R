@@ -33,6 +33,9 @@ build_nondetailed_plot <- function(
   bracket_arm <- 0.10
   check_x <- bracket_x + 0.03
 
+  # palette
+  group_palette <- build_tile_palette(groups_plot$group_id, seed = 1)
+
   # y positions
   taxa_levels <- c(
     groups_info |>
@@ -122,7 +125,8 @@ build_nondetailed_plot <- function(
       height = 1,
       color = "black",
       linewidth = 0.35
-    )
+    ) +
+    ggplot2::scale_fill_manual(values = group_palette)
 
   # grouped taxon brackets
   p_msa <- add_group_brackets(

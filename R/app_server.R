@@ -226,7 +226,7 @@ app_server <- function(input, output, session) {
     }
   })
 
-  # rebuild the plot when relevant inputs change
+  # rebuild the plot when inputs change
   msa_plot <- shiny::reactive({
     selected_vregions()
     input$continueWithTaxa

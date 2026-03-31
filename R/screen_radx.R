@@ -28,7 +28,7 @@ radx_screen_ui <- function() {
 
       # taxa search
       shinyWidgets::pickerInput(
-        "radxSearchTaxa", "Search:",
+        "radxSearchTaxa", "Locate Taxa:",
         choices = NULL, multiple = TRUE, width = "100%",
         options = shinyWidgets::pickerOptions(
           `live-search` = TRUE,
@@ -42,7 +42,7 @@ radx_screen_ui <- function() {
           container = "body"
         )
       ),
-      shiny::actionButton("searchTaxa", "Search", style = "width:100%;margin-bottom:10px;")
+      shiny::actionButton("searchTaxa", "Locate", style = "width:100%;margin-bottom:10px;")
     ),
 
     # app styles
@@ -52,15 +52,12 @@ radx_screen_ui <- function() {
     radx_instructions(),
 
     # main plot
-    shiny::conditionalPanel(
-      "input.continueWithTaxa > 0",
-      radx_loading_plot("visual")
-    )
+    radx_loading_plot("visual")
 
   )
 }
 
-radx_loading_plot <- function(id, height = "550px") {
+radx_loading_plot <- function(id, height = "570px") {
   # plot output with loading overlay
   shiny::div(
     class = "radx-wrap",
@@ -85,11 +82,20 @@ radx_instructions <- function() {
         class = "radx-instructions-text",
         "Select the 16S rRNA gene variable regions you wish to study in the left sidebar.",
         shiny::tags$br(),
-        "A green checkmark (", shiny::span("✓", style = "color:green;font-weight:bold;"),
+        "  • A green checkmark (", shiny::span("✓", style = "color:green;font-weight:bold;"),
         ") indicates that a taxon can be identified using the selected v-region(s).",
         shiny::tags$br(),
-        "A red bracket (", shiny::span("[", style = "color:red;font-weight:bold;"),
+        "  • A red bracket (", shiny::span("[", style = "color:red;font-weight:bold;"),
         ") groups taxa that cannot be distinguished from one another with the selected v-region(s).",
+        shiny::tags$br(),
+        shiny::tags$br(),
+        "Use Locate to show the chosen taxa and any taxa they are grouped with.",
+        shiny::tags$br(),
+        "  • Located taxa will be marked with a blue arrow (",
+        shiny::span("➤", style = "color:#00dfeb;font-size:14pt;font-weight:bold;"),
+        ").",
+        shiny::tags$br(),
+        shiny::tags$br(),
         shiny::tags$small(
           style = "display:block;font-style:italic;margin-top:6px;",
           "Note: Colors designate identical sequences within a v-region. Colors should not be compared across columns."
@@ -104,7 +110,7 @@ radx_styles <- function() {
   shiny::tags$style(shiny::HTML("
     .vr-grid .shiny-options-group{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 12px}
     .vr-grid .checkbox{margin:0}
-    .radx-wrap{position:relative;min-height:550px}
+    .radx-wrap{position:relative;min-height:570px}
     .radx-out{transition:opacity .15s ease}
     .radx-load{
       display:none;position:absolute;inset:0;z-index:10;

@@ -28,7 +28,7 @@ build_detailed_plot <- function(
   check_x <- bracket_x + 0.03
 
   # tile colors
-  tile_palette <- build_tile_palette(RADqtiles$seq_id)
+  tile_palette <- build_tile_palette(RADqtiles$seq_id_local)
 
   # backbone rows
   detailed_backbone_df <- copy_layout |>
@@ -166,17 +166,11 @@ build_detailed_plot <- function(
 
   # plot height
   n_species <- dplyr::n_distinct(species_layout$species)
-  max_copies_per_species <- copy_layout |>
-    dplyr::group_by(species) |>
-    dplyr::summarise(n_copies = max(copy_row), .groups = "drop") |>
-    dplyr::pull(n_copies) |>
-    max(na.rm = TRUE)
-
   total_copy_rows <- nrow(detailed_backbone_df)
 
   plot_height <- max(
-    500,
-    140 + 24 * total_copy_rows + 18 * n_species + 35 * max_copies_per_species
+    220,
+    120 + 28 * total_copy_rows + 12 * n_species
   )
 
   # return plot and height

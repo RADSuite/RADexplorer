@@ -180,7 +180,8 @@ make_species_axis_labels <- function(species, n_copies, searched_taxa = characte
   species_label <- ifelse(
     species %in% searched_taxa,
     paste0(
-      "<span style='font-size:10pt; line-height:1.1; font-weight:800; color:#2c7c31;'><i>",
+      "<span style='font-size:18pt; color:#00dfeb; font-weight:650; position:relative; top:8px;'>➤  </span>",
+      "<span style='font-size:10pt; line-height:1.1; font-weight:650;'><i>",
       species,
       "</i></span>"
     ),
@@ -259,13 +260,20 @@ make_plotly_layout <- function(p_msa, plot_height) {
     )
 }
 
-build_tile_palette <- function(seq_id) {
-  tile_levels <- sort(unique(substring(seq_id, 3)))
+build_tile_palette <- function(ids, seed = NULL) {
+  tile_levels <- sort(unique(as.character(ids)))
+
   tile_palette <- grDevices::hcl(
     h = seq(15, 375, length.out = length(tile_levels) + 1)[seq_along(tile_levels)],
     c = 100,
     l = 65
   )
+
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+
+  tile_palette <- sample(tile_palette)
   names(tile_palette) <- tile_levels
   tile_palette
 }
