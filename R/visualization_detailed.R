@@ -1,6 +1,13 @@
 # helper for detailed RADexplorer plot
 
-build_detailed_plot <- function(layout_data, vr_levels_all, unique, selected_vr, vregionIDs = FALSE) {
+build_detailed_plot <- function(
+    layout_data,
+    vr_levels_all,
+    unique,
+    selected_vr,
+    vregionIDs = FALSE,
+    searched_taxa = character(0)
+) {
 
   # plotting inputs
   species_layout <- layout_data$species_layout
@@ -135,12 +142,16 @@ build_detailed_plot <- function(layout_data, vr_levels_all, unique, selected_vr,
       breaks = seq_len(n_vr),
       labels = NULL,
       position = "top",
-      limits = c(0.3 - backbone_pad, n_vr + 1.2 + backbone_pad),
+      limits = c(-0.45, n_vr + 1.2 + backbone_pad),
       expand = c(0, 0)
     ) +
     ggplot2::scale_y_continuous(
       breaks = y_breaks$y_lab,
-      labels = make_species_axis_labels(y_breaks$species, y_breaks$n_copies),
+      labels = make_species_axis_labels(
+        y_breaks$species,
+        y_breaks$n_copies,
+        searched_taxa = searched_taxa
+      ),
       limits = c(max(detailed_backbone_df$y) + 0.5, min(header_rows$y_header) - 0.6),
       expand = c(0, 0),
       trans = "reverse"

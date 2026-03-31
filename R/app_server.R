@@ -144,7 +144,7 @@ app_server <- function(input, output, session) {
       RADq(RADalign::createRADq(taxa_now, TRUE))
       uniqueRADq(RADalign::createSummarizedIDs(TRUE))
       RADqGroups(RADalign::createRADqGroups(vregions_now, TRUE))
-      radx_search_seed_taxa(taxa_now)
+      radx_search_seed_taxa(c())
       radx_search_display_taxa(taxa_now)
 
       loading(FALSE)
@@ -260,7 +260,8 @@ app_server <- function(input, output, session) {
       groups = filtered_groups,
       varRegions = selected_vregions(),
       detailed = input$detailedView,
-      vregionIDs = input$vregionIDs
+      vregionIDs = input$vregionIDs,
+      searched_taxa = radx_search_seed_taxa()
     )
   })
 

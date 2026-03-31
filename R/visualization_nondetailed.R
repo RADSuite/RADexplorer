@@ -1,6 +1,15 @@
 # helper for non-detailed RADexplorer plot
 
-build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_clean, selected_vr, vr_levels_all, vregionIDs = FALSE) {
+build_nondetailed_plot <- function(
+    unique,
+    groups_info,
+    RADq,
+    selected_regions_clean,
+    selected_vr,
+    vr_levels_all,
+    vregionIDs = FALSE,
+    searched_taxa = character(0)
+) {
 
   # plotting inputs
   groups_plot <- unique |>
@@ -153,7 +162,11 @@ build_nondetailed_plot <- function(unique, groups_info, RADq, selected_regions_c
     ) +
     ggplot2::scale_y_continuous(
       breaks = y_breaks$y,
-      labels = make_species_axis_labels(y_breaks$taxa, y_breaks$n_copies),
+      labels = make_species_axis_labels(
+        y_breaks$taxa,
+        y_breaks$n_copies,
+        searched_taxa = searched_taxa
+      ),
       limits = c(max(groups_plot$y) + 0.8, min(header_rows$y_header) - 0.2),
       expand = c(0, 0),
       trans = "reverse"

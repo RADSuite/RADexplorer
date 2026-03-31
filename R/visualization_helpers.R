@@ -173,11 +173,26 @@ build_species_layout <- function(RADqtiles, groups_info, gap = 2) {
 #' @return a list containing species labels for the y axis
 #' @export
 #'
-make_species_axis_labels <- function(species, n_copies) {
+make_species_axis_labels <- function(species, n_copies, searched_taxa = character(0)) {
 
-  # species name plus copy count label
+  searched_taxa <- searched_taxa %||% character(0)
+
+  species_label <- ifelse(
+    species %in% searched_taxa,
+    paste0(
+      "<span style='font-size:10pt; line-height:1.1; font-weight:800; color:#2c7c31;'><i>",
+      species,
+      "</i></span>"
+    ),
+    paste0(
+      "<span style='font-size:10pt; line-height:1.1; font-weight:650;'><i>",
+      species,
+      "</i></span>"
+    )
+  )
+
   paste0(
-    "<span style='font-size:10pt; line-height:1.1; font-weight:650;'><i>", species, "</i></span>",
+    species_label,
     "<br><span style='font-size:8pt; line-height:1.1;'>",
     n_copies,
     " 16S rRNA gene cop",

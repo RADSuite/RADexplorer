@@ -22,6 +22,7 @@ make_msa_plotly <- function(
     highlight_unique = FALSE,
     detailed = TRUE,
     vregionIDs = FALSE,
+    searched_taxa = character(0),
     package = "RADexplorer"
 ) {
 
@@ -49,7 +50,8 @@ make_msa_plotly <- function(
       vr_levels_all = vr_levels_all,
       unique = prep$unique,
       selected_vr = varRegions,
-      vregionIDs = vregionIDs
+      vregionIDs = vregionIDs,
+      searched_taxa = searched_taxa
     )
   } else {
     build_nondetailed_plot(
@@ -59,7 +61,8 @@ make_msa_plotly <- function(
       selected_regions_clean = varRegions,
       selected_vr = varRegions,
       vr_levels_all = vr_levels_all,
-      vregionIDs = vregionIDs
+      vregionIDs = vregionIDs,
+      searched_taxa = searched_taxa
     )
   }
 
