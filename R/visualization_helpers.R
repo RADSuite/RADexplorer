@@ -123,11 +123,9 @@ build_species_layout <- function(RADqtiles, groups_info, gap = 2) {
   RADqtiles_plot <- RADqtiles |>
     dplyr::mutate(
       species = factor(species, levels = species_levels),
-      seq_id_local = factor(paste0(
-        match(variable_region_clean, paste0("V", 1:9)),
-        "-",
+      seq_id_local = factor(
         as.integer(factor(seq_id, levels = unique(seq_id)))
-      ))
+      )
     ) |>
     dplyr::left_join(
       species_layout |> dplyr::select(species, start),
