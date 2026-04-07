@@ -4,7 +4,7 @@
 menu_screen_ui <- function() {
   # rad explorer menu
   bslib::page_fillable(
-    title = "RADexplorer",
+    title = "RADx",
     shinyjs::useShinyjs(),
     fillable = FALSE,
 
@@ -79,7 +79,7 @@ menu_screen_ui <- function() {
           # action buttons
           shiny::div(
             class = "menu-button-row",
-            shiny::actionButton("download", "Export RAD Databases", style = "flex:1;"),
+            shiny::actionButton("download", "Export to MetaScope", style = "flex:1;"),
             shiny::actionButton("continueWithTaxa", "Explore", style = "flex:1;")
           )
         )
