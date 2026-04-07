@@ -22,14 +22,18 @@ app_server <- function(input, output, session) {
   loading <- shiny::reactiveVal(FALSE)
   radx_search_seed_taxa <- shiny::reactiveVal(character(0))
   radx_search_display_taxa <- shiny::reactiveVal(character(0))
+
   # genus-wide dropdown pattern
   genus_all_species_pattern <- " - All Species(?: \\([0-9]+\\))?$"
+
   # get accessions table from RADalign
   accessions_table <- RADalign::get_accessions_df()
+
   # helper to detect genus-wide dropdown options
   is_genus_all_species <- function(x) {
     grepl(genus_all_species_pattern, x)
   }
+
   # expands any "[Genus] - All Species" selections to their species
   expand_selected_taxa <- function(taxa) {
     taxa <- taxa %||% character(0)
@@ -44,6 +48,7 @@ app_server <- function(input, output, session) {
     )
     sort(unique(c(direct_taxa, genus_taxa)))
   }
+
   # helper for RADx search
   radx_search_taxa <- function(search_taxa, groups_df, all_taxa) {
     search_taxa <- search_taxa %||% character(0)
@@ -62,6 +67,7 @@ app_server <- function(input, output, session) {
     grouped_taxa <- groups_df$taxa[groups_df$groups %in% matched_groups]
     sort(unique(c(search_taxa, grouped_taxa)))
   }
+
   # rebuild taxa picker when entering menu
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
@@ -82,6 +88,7 @@ app_server <- function(input, output, session) {
       selected = selected_taxa()
     )
   }, ignoreInit = FALSE)
+
   # rebuild RADx search picker when entering RADx
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "radx")
@@ -92,6 +99,7 @@ app_server <- function(input, output, session) {
       selected = character(0)
     )
   }, ignoreInit = TRUE)
+
   # note under the taxa selector
   output$speciesNote <- shiny::renderUI({
     n_selected <- length(expand_selected_taxa(selected_taxa()))
@@ -104,16 +112,19 @@ app_server <- function(input, output, session) {
       )
     )
   })
+
   # store selected taxa from main picker
   shiny::observeEvent(input$selectTaxa, {
     selected_taxa(input$selectTaxa %||% character(0))
   }, ignoreInit = TRUE)
+
   # enable menu buttons only when taxa are selected
   shiny::observe({
     has_taxa <- length(selected_taxa()) > 0
     shinyjs::toggleState("download", condition = has_taxa)
     shinyjs::toggleState("continueWithTaxa", condition = has_taxa)
   })
+
   # run RADalign pipeline and move to analysis screen
   shiny::observeEvent(input$continueWithTaxa, {
     taxa_now <- isolate(expand_selected_taxa(selected_taxa()))
@@ -130,6 +141,7 @@ app_server <- function(input, output, session) {
       screen("radx")
     }, delay = 0)
   })
+
   # apply RADx search
   shiny::observeEvent(input$radxSearchTaxa, {
     shiny::req(RADqGroups())
@@ -144,15 +156,18 @@ app_server <- function(input, output, session) {
       )
     )
   }, ignoreNULL = FALSE, ignoreInit = TRUE)
+
   # update selected variable regions
   shiny::observeEvent(input$varRegions, {
     shiny::req(RADq(), uniqueRADq())
     vr <- input$varRegions %||% character(0)
     selected_vregions(vr)
+
     new_groups <- tryCatch(
       RADalign::createRADqGroups(if (length(vr) == 0) paste0("V", 1:9) else vr, TRUE),
       error = function(e) NULL
     )
+
     if (!is.null(new_groups) && nrow(new_groups) > 0) {
       RADqGroups(new_groups)
       radx_search_display_taxa(
@@ -164,6 +179,7 @@ app_server <- function(input, output, session) {
       )
     }
   }, ignoreNULL = FALSE)
+
   # clear selected variable regions
   shiny::observeEvent(input$deselectVarRegions, {
     shiny::updateCheckboxGroupInput(
@@ -172,6 +188,7 @@ app_server <- function(input, output, session) {
       selected = character(0)
     )
   })
+
   # navigation between screens
   shiny::observeEvent(input$backToMenu, {
     radx_search_seed_taxa(character(0))
@@ -181,6 +198,7 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(input$download, {
     screen("RADport")
   })
+
   # choose which page to show
   output$page <- shiny::renderUI({
     if (screen() == "radx") {
@@ -193,6 +211,7 @@ app_server <- function(input, output, session) {
       radport_screen_ui()
     }
   })
+
   # rebuild the plot when inputs change
   msa_plot <- shiny::reactive({
     selected_vregions()

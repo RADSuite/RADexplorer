@@ -40,9 +40,11 @@ radport_screen_ui <- function() {
         });
       }
       function toggleOpt(opt) {
-        [1,2].forEach(function(i) {
-          document.getElementById('opt'+i).classList.toggle('active', i===opt);
-          document.getElementById('optTab'+i).classList.toggle('active', i===opt);
+        [1,2,3,4].forEach(function(i) {
+          var panel = document.getElementById('opt'+i);
+          var tab = document.getElementById('optTab'+i);
+          if (panel) panel.classList.toggle('active', i===opt);
+          if (tab) tab.classList.toggle('active', i===opt);
         });
       }
       document.addEventListener('DOMContentLoaded', function() { toggleOpt(1); });
@@ -96,7 +98,7 @@ radport_screen_ui <- function() {
 
                    htmltools::hr(class = "divider"),
 
-                   step_section(5, "Build Bowtie Index", "Index the reference database so Bowtie can align against it. Note: this step can take a long time, but only needs to be run once.",
+                   step_section(5, "Build Bowtie Index", "Index the reference database so Bowtie can align against it. Note: this step may take a long time, but only needs to be run once.",
                                 code_block("code5", CODE_5())
                    ),
 
@@ -108,8 +110,25 @@ radport_screen_ui <- function() {
 
                    htmltools::hr(class = "divider"),
 
-                   step_section(7, "View Results", "Extract read counts per organism and display the top results.",
+                   step_section(7, "Generate Bam File", "",
                                 code_block("code7", CODE_7())
+                   ),
+
+                   htmltools::hr(class = "divider"),
+
+                   step_section(2, "Output Table", "Choose one option below. You only need to run one.",
+                                htmltools::div(
+                                  htmltools::tags$button("Option 1: Species names",    id = "optTab3", class = "opt-tab active", onclick = "toggleOpt(3)"),
+                                  htmltools::tags$button("Option 2: TaxID", id = "optTab4", class = "opt-tab",        onclick = "toggleOpt(4)")
+                                ),
+                                htmltools::div(id = "opt3", class = "opt-panel",
+                                               htmltools::p(class = "opt-note", "Use species names and read counts."),
+                                               code_block("code8a", CODE_8A())
+                                ),
+                                htmltools::div(id = "opt4", class = "opt-panel",
+                                               htmltools::p(class = "opt-note", "Use TaxID and read counts."),
+                                               code_block("code8b", CODE_8B())
+                                )
                    ),
 
                    htmltools::hr(class = "divider"),
@@ -200,14 +219,30 @@ CODE_6 <- function() {
 
 CODE_7 <- function() {
   'bamFile <- Rsamtools::BamFile(target_map)
-param <- Rsamtools::ScanBamParam(
-  flag = Rsamtools::scanBamFlag(isSecondaryAlignment = FALSE),
-  what = c("flag", "rname")
-)
-aln <- Rsamtools::scanBam(bamFile, param = param)
-accession_all <- aln[[1]]$rname
-genome_name_all <- get_species_list(accession_all)
+
+  param <-
+    Rsamtools::ScanBamParam(
+      flag = Rsamtools::scanBamFlag(isSecondaryAlignment = FALSE),
+      what = c("flag", "rname")
+    )
+
+  aln <- Rsamtools::scanBam(bamFile, param = param)
+  accession_all <- aln[[1]]$rname'
+}
+
+CODE_8A <- function() {
+  'genome_name_all <- get_species_list(accession_all) #RADalign function
 read_count_table <- sort(table(genome_name_all), decreasing = TRUE)
+
+knitr::kable(
+  read_count_table[1:10],
+  col.names = c("Genome Assigned", "Read Count"))'
+}
+
+CODE_8B <- function() {
+  'taxa_id_all <- get_taxa_ids(accession_all) #RADalign function
+read_count_table <- sort(table(taxa_id_all), decreasing = TRUE)
+
 knitr::kable(
   read_count_table[1:10],
   col.names = c("Genome Assigned", "Read Count"))'
