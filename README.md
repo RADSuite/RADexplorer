@@ -1,6 +1,6 @@
 # RADexplorer (RADx)
 
-An interactive Shiny app for exploring 16S rRNA gene copy variation across microbial taxa, helping researchers choose the right variable regions for their amplicon sequencing experiments.
+An interactive Shiny app for exploring the variation across 16S rRNA gene copies in microbial taxa, helping researchers choose the right variable regions for their amplicon sequencing experiments.
 
 ---
 
