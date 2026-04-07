@@ -11,7 +11,6 @@
 app_server <- function(input, output, session) {
   # package app path
   base_dir <- system.file("app", package = "RADexplorer")
-  shiny::addResourcePath("app", base_dir)
 
   # app state
   screen <- shiny::reactiveVal("menu")
