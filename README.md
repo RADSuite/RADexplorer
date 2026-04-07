@@ -18,8 +18,8 @@ This matters more than most researchers expect. The most commonly used v-regions
 
 RADx is built on two reference libraries:
 
-- **RADlib** - 
-- **RADlibv** -
+- **RADlib16S** - A bacteria and archaea 16S rRNA database containing all copies of the 16S rRNA gene in an organism
+- **RADlibVR** - A database of all variable regions found in RADlib
 
 When you select species in RADx, **RADalign** runs multiple sequence alignment and grouping analyses on those sequences across whichever variable regions you choose. 
 RADx then visualizes the results so you can interpret them interactively.
