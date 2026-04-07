@@ -24,7 +24,7 @@ radport_screen_ui <- function() {
                                                shiny::div(style = "display:flex; gap:12px; align-items:flex-end;",
                                                           shiny::textInput("filepath", label = NULL, value = ""),
                                                           shiny::actionButton("inputFilepath", "Download", style = "height:34px; padding:0 12px; margin-bottom:17px;")),
-                                               htmltools::p(class = "opt-note", "After clicking Download, the ref path will appear below:"),
+                                               htmltools::p(class = "opt-note", "After clicking download, wait a moment for the code to copy to appear below:"),
                                                shiny::uiOutput("code2b_block"))),
                    htmltools::hr(class = "divider"),
                    step_section(3, "Load Sample Data",
