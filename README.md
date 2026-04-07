@@ -1,6 +1,6 @@
 # RADexplorer
 
-An interactive Shiny application for exploring 16S rRNA gene copy variation across microbial taxa to assist in variable region selection for amplicon sequencing experiments.
+An interactive Shiny app for exploring 16S rRNA gene copy variation across microbial taxa, helping researchers choose the right variable regions for their amplicon sequencing experiments.
 
 ---
 
@@ -59,7 +59,7 @@ When the app opens you will see the RADexplorer menu. Use the species picker to 
 
 ### 2. Choose your variable regions
 
-In the sidebar, check the variable regions you want to explore. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
+After the explorer loads, you can then select the variable regions you want to explore in the sidebar. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
 
 ### 3. Interpret the visualization
 
@@ -85,26 +85,29 @@ Use the **Locate Taxa** picker to search for specific taxa in the plot. Located 
 
 ## Typical Use Cases
 
-**Which V region should I sequence to identify my target species?**
+**"Which V region should I sequence to identify my target species?"**   
 Select your taxa, try different V region combinations, and look for green checkmarks. A checkmark means that region produces a unique sequence for that species and you can uniquely identify it!
 
-**Can I distinguish two closely related species with V4 alone?**
+
+**"Can I distinguish two closely related species with V4 alone?"**  
 Select both species, check only V4, and see whether they fall into the same group (red bracket) or are independently identifiable (green checkmark).
 
-**Another researcher used V3-V4 amplicon sequencing. Can I compare my V4 data to theirs?**
-Check both V3 and V4 together and see whether the resolution changes between the two for your taxa of interest.
 
-**How many 16S copies does my target organism carry, and are they identical?**
+**"How many 16S copies does my target organism carry, and are they identical?"**  
 Switch to Detailed View to see every individual gene copy per species. Tiles of different colors in the same column indicate unique sequences for that region.
 
-**I am writing a methods section and need to justify my V region choice.**
+
+**"Another researcher used V3-V4 amplicon sequencing. Can I compare my V4 data to theirs?"**  
+Check both V3 and V4 together and see whether the resolution changes between the two for your taxa of interest.
+
+
+**"I am writing a methods section and need to justify my V-region choice."**  
 Select your taxa and check your chosen region. RADexplorer shows you exactly why that region resolves your targets. Feel free to cite RADexplorer as justification for your primer selection.
 
-**I think two (or more) species in my data are collapsing into one OTU. Can I confirm that?**
+
+**"I think two (or more) species in my data are collapsing into one OTU. Can I confirm that?"**  
 Select your species of interest and your sequenced region. A red bracket means they share identical sequences there and cannot be told apart by that amplicon.
 
-**My sequencing budget only allows for one region. Which one gives me the least grouping across my community of interest?**
-Select your full taxa list and find the region with the fewest red brackets.
 
 ---
 
