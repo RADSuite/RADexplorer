@@ -1,6 +1,6 @@
 # RADexplorer (RADx)
 
-An interactive Shiny app for exploring the variation across 16S rRNA gene copies in microbial taxa, helping researchers choose the right variable regions for their amplicon sequencing experiments.
+An interactive RShiny app for exploring the variation across 16S rRNA gene copies in microbial taxa, helping researchers choose the right variable regions for their amplicon sequencing experiments.
 
 ---
 
@@ -18,8 +18,8 @@ This matters more than most researchers expect. The most commonly used v-regions
 
 RADx is built on two reference libraries:
 
-- **RADlib** — a library of all 16S rRNA gene copies associated with each microbial taxon, sourced from NCBI
-- **RADlibv** — RADlib cut into the nine standard variable regions
+- **RADlib** - 
+- **RADlibv** -
 
 When you select species in RADx, **RADalign** runs multiple sequence alignment and grouping analyses on those sequences across whichever variable regions you choose. 
 RADx then visualizes the results so you can interpret them interactively.
@@ -28,7 +28,8 @@ RADx then visualizes the results so you can interpret them interactively.
 
 ## Installation
 
-RADx is installed directly from GitHub. All dependencies are handled automatically.
+RADx is installed directly from GitHub. All dependencies are handled automatically.  
+Run the following commands in your R or RStudio console:
 
 **Step 1: Install pak** (if not already installed)
 ```r
@@ -56,9 +57,9 @@ RADexplorer::run_app()
 ## How to Use
 
 ### 1. Select your species
-When the app opens you will see the RADx menu. Use the species picker to search for and select the taxa you want to analyze. You can select as many species as you need. Keep in mind, the more species you select, the longer it will take to load the explorer.
+When the app opens you will see the RADx menu. Use the species picker to search for and select the taxa you want to analyze. You can select as many species as you need. Keep in mind, the more species you select, the longer it will take to load the explorer. To select all species within a genus, use the "All Species (#)" options. 
 
-<img width="1160" height="577" alt="taxaSelect" src="https://github.com/user-attachments/assets/e4473cba-d645-46ff-aa30-7d068d986f9e" />
+<img width="1181" height="581" alt="taxaSelect" src="https://github.com/user-attachments/assets/53e91509-f637-492c-aa36-edc21868b5c1" />
 
 
 ### 2. Choose your variable regions
@@ -133,7 +134,7 @@ Select your species of interest and your sequenced region. A red bracket means t
 
 ## RADport
 
-RADx includes **RADport**, a built-in pipeline guide that walks you through running your selected taxa through MetaScope for read-level taxonomic classification. Access it from the main menu after selecting your species.
+RADx includes **RADport**, a built-in guide that walks you through running your selected taxa through the MetaScope pipeline. Access it from the main menu after selecting your species.
 
 ---
 
