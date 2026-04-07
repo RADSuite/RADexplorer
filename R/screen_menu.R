@@ -79,7 +79,7 @@ menu_screen_ui <- function() {
           # action buttons
           shiny::div(
             class = "menu-button-row",
-            shiny::actionButton("download", "Export to MetaScope", style = "flex:1;"),
+            shiny::actionButton("download", "Integrate with MetaScope", style = "flex:1;"),
             shiny::actionButton("continueWithTaxa", "Explore", style = "flex:1;")
           )
         )

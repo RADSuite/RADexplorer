@@ -189,6 +189,28 @@ app_server <- function(input, output, session) {
     )
   })
 
+  output$code2b_block <- shiny::renderUI({ NULL })
+  shiny::outputOptions(output, "code2b_block", suspendWhenHidden = FALSE)
+
+  shiny::observeEvent(input$inputFilepath, {
+    filepath <- input$filepath
+    result <- if (nchar(trimws(filepath)) > 0) {
+      RADalign::download_RAD_data(
+        pipeline          = "MetaScope",
+        organisms_list    = expand_selected_taxa(selected_taxa()),
+        download_location = filepath
+      )
+    } else {
+      RADalign::download_RAD_data(
+        pipeline       = "MetaScope",
+        organisms_list = expand_selected_taxa(selected_taxa())
+      )
+    }
+    output$code2b_block <- shiny::renderUI({
+      code_block("code2b_result", paste0('ref <- "', result, '"'))
+    })
+  })
+
   # navigation between screens
   shiny::observeEvent(input$backToMenu, {
     radx_search_seed_taxa(character(0))

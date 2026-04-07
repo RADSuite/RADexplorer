@@ -4,7 +4,7 @@
 \alias{make_species_axis_labels}
 \title{Build species y-axis labels}
 \usage{
-make_species_axis_labels(species, n_copies)
+make_species_axis_labels(species, n_copies, searched_taxa = character(0))
 }
 \arguments{
 \item{species}{List of user-selected genus species names}

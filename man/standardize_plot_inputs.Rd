@@ -16,7 +16,7 @@ standardize_plot_inputs(RADq, unique, groups, varRegions)
 \item{varRegions}{List of the user-selected variable regions}
 }
 \value{
-a list containing the standardized RADq, unique, groups, and RADqtiles, groups_info dfs
+a list containing the standardized unique, RADqtiles, groups_info, and copy_counts
 }
 \description{
 Standardize plot inputs for RADexplorer visualizations
