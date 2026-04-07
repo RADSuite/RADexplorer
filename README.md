@@ -80,7 +80,8 @@ The main plot shows each selected species on the y axis and the variable regions
 
 ### 4. Detailed view
 
-Toggle **Detailed View** in the sidebar to switch from a summary view to a copy-level view, showing each individual gene copy as its own row per species.
+Toggle **Detailed View** in the sidebar to switch from a summary view to a copy-level view, showing each individual gene copy as its own row per species.  
+In general, the summary view is best for interspecies comparison and V-region selection, while the detailed view is best for studying intraspecies copy variation within a taxon.
 
 <img width="1101" height="604" alt="RADxDetailed" src="https://github.com/user-attachments/assets/ac385cc9-b62b-4aa3-acc4-2490e8c606f8" />
 
