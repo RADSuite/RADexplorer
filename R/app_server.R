@@ -66,7 +66,7 @@ app_server <- function(input, output, session) {
   # rebuild taxa picker when entering menu
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
-    
+
     organisms <- load_organism_selection_list(accessions_table)
 
     shinyWidgets::updatePickerInput(
@@ -74,7 +74,11 @@ app_server <- function(input, output, session) {
       inputId = "selectTaxa",
       choices = organisms,
       choicesOpt = list(
-        style = ifelse(is_genus_all_species(organisms), "font-weight:700;", "")
+        style = ifelse(
+          is_genus_all_species(organisms),
+          "font-weight:700; font-style:italic;",
+          "font-style:italic;"
+        )
       ),
       selected = selected_taxa()
     )
