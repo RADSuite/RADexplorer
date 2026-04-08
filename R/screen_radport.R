@@ -141,7 +141,12 @@ radport_scripts <- function() {
 
 
 # code strings (instructions for users)
-CODE_1  <- function() 'library("MetaScope")'
+CODE_1  <- function() {
+  'install.packages("BiocManager")
+BiocManager::install("MetaScope")
+library(MetaScope)
+library(magrittr)'
+}
 
 CODE_2A <- function() {
   'rad_lib_file <- system.file("extdata", "RADlib16S.fa", package = "RADalign")
