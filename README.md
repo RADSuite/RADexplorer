@@ -28,6 +28,8 @@ RADx then visualizes the results so you can interpret them interactively.
 
 ## Installation
 
+RADexplorer is written and run in R. If you do not already have R downloaded, you can download it here, along with RStudio, the IDE most commonly used for coding R: https://posit.co/downloads/
+
 RADx is installed directly from GitHub. All dependencies are handled automatically.  
 Run the following commands in your R or RStudio console:
 
@@ -36,17 +38,23 @@ Run the following commands in your R or RStudio console:
 install.packages("pak")
 ```
 
-**Step 2: Install RADalign**
+**Step 2: Install Biostrings**
+```r
+install.packages("BiocManager")
+BiocManager::install("msa")
+```
+
+**Step 3: Install RADalign**
 ```r
 pak::pak("RADSuite/RADalign")
 ```
 
-**Step 3: Install RADx**
+**Step 4: Install RADx**
 ```r
 pak::pak("RADSuite/RADexplorer")
 ```
 
-**Step 4: Load and launch**
+**Step 5: Load and launch**
 ```r
 library(RADexplorer)
 RADexplorer::run_app()
@@ -64,14 +72,14 @@ When the app opens you will see the RADx menu. Use the species picker to search 
 
 ### 2. Choose your variable regions
 
-After the explorer loads, you can then select the variable regions you want to explore in the sidebar. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
+After the explorer loads, you can then select the  v-regions you want to explore in the sidebar. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
 
 <img width="276" height="264" alt="vregions" src="https://github.com/user-attachments/assets/dc0e2100-8efa-4961-b84c-6186c22e1921" />
 
 
 ### 3. Interpret the visualization
 
-The main plot shows each selected species on the y axis and the variable regions on the x axis. Each tile represents a 16S rRNA gene copy for that species in that region. Tile colors designate identical sequences within a v-region.
+The main plot shows the selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. Within each v-region column, tiles that share a color have identical signatures.
 
 - **A gold highlight** on a column marks the currently selected variable regions
 - **A green checkmark** next to a species means it can be uniquely identified using the selected variable regions
@@ -83,7 +91,7 @@ The main plot shows each selected species on the y axis and the variable regions
 ### 4. Detailed view
 
 Toggle **Detailed View** in the sidebar to switch from a summary view to a copy-level view, showing each individual gene copy as its own row per species. 
-In general, the summary view is best for interspecies comparison and V-region selection, while the detailed view is best for studying intraspecies copy variation within a taxon.
+In general, the summary view is best for interspecies comparison and v-region selection, while the detailed view is best for studying intraspecies copy variation within a taxon.
 
 <img width="1101" height="604" alt="RADxDetailed" src="https://github.com/user-attachments/assets/ac385cc9-b62b-4aa3-acc4-2490e8c606f8" />
 
