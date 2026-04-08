@@ -44,17 +44,17 @@ install.packages("BiocManager")
 BiocManager::install("msa")
 ```
 
-**Step 2: Install RADalign**
+**Step 3: Install RADalign**
 ```r
 pak::pak("RADSuite/RADalign")
 ```
 
-**Step 3: Install RADx**
+**Step 4: Install RADx**
 ```r
 pak::pak("RADSuite/RADexplorer")
 ```
 
-**Step 4: Load and launch**
+**Step 5: Load and launch**
 ```r
 library(RADexplorer)
 RADexplorer::run_app()
