@@ -38,6 +38,12 @@ Run the following commands in your R or RStudio console:
 install.packages("pak")
 ```
 
+**Step 2: Install Biostrings**
+```r
+install.packages("BiocManager")
+BiocManager::install("msa")
+```
+
 **Step 2: Install RADalign**
 ```r
 pak::pak("RADSuite/RADalign")
