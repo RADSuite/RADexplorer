@@ -28,6 +28,8 @@ RADx then visualizes the results so you can interpret them interactively.
 
 ## Installation
 
+RADexplorer is written and run in R. If you do not already have R downloaded, you can download it here, along with RStudio, the IDE most commonly used for coding R: https://posit.co/downloads/
+
 RADx is installed directly from GitHub. All dependencies are handled automatically.  
 Run the following commands in your R or RStudio console:
 
