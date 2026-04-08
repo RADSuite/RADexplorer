@@ -72,32 +72,14 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(screen(), {
     shiny::req(screen() == "menu")
 
-    shiny::observeEvent(screen(), {
-      shiny::req(screen() == "menu")
+    has_taxa <- length(selected_taxa()) > 0
 
-      session$onFlushed(function() {
-        shinyjs::disable("download")
-        shinyjs::disable("continueWithTaxa")
-      }, once = TRUE)
-
-      organisms <- load_organism_selection_list(accessions_table)
-      shinyWidgets::updatePickerInput(
-        session = session,
-        inputId = "selectTaxa",
-        choices = organisms,
-        choicesOpt = list(
-          style = ifelse(
-            is_genus_all_species(organisms),
-            "font-weight:700; font-style:italic;",
-            "font-style:italic;"
-          )
-        ),
-        selected = selected_taxa()
-      )
-    }, ignoreInit = FALSE)
+    session$onFlushed(function() {
+      shinyjs::toggleState("download", condition = has_taxa)
+      shinyjs::toggleState("continueWithTaxa", condition = has_taxa)
+    }, once = TRUE)
 
     organisms <- load_organism_selection_list(accessions_table)
-
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = "selectTaxa",
