@@ -140,11 +140,12 @@ app_server <- function(input, output, session) {
   # store selected taxa from main picker
   shiny::observeEvent(input$selectTaxa, {
     selected_taxa(input$selectTaxa %||% character(0))
-  }, ignoreInit = TRUE)
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
 
   # enable menu buttons only when taxa are selected
   shiny::observe({
     has_taxa <- length(selected_taxa()) > 0
+    print(paste("has_taxa:", has_taxa))
     shinyjs::toggleState("download", condition = has_taxa)
     shinyjs::toggleState("continueWithTaxa", condition = has_taxa)
   })

@@ -5,7 +5,6 @@ menu_screen_ui <- function() {
   # rad explorer menu
   bslib::page_fillable(
     title = "RADx",
-    shinyjs::useShinyjs(),
     fillable = FALSE,
 
     # app styles

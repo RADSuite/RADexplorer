@@ -10,7 +10,6 @@ metascope_screen_ui <- function(genus, species) {
   bslib::page_fillable(
     title = "RADport to MetaScope",
     fillable = TRUE,
-    shinyjs::useShinyjs(),
     htmltools::div(
       style = "display:flex; align-items:flex-start; justify-content:center; padding-top:50px; padding-bottom:50px; overflow:visible;",
       htmltools::div(
