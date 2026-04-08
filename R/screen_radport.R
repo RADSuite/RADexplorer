@@ -192,7 +192,7 @@ accession_all <- aln[[1]]$rname'
 }
 
 CODE_8A <- function() {
-  'genome_name_all <- RADalign::get_organisms_name(accession_all) # RADalign function
+  'genome_name_all <- RADalign::get_organism_names(accession_all) # RADalign function
 read_count_table <- sort(table(genome_name_all), decreasing = TRUE)
 knitr::kable(read_count_table[1:10], col.names = c("Genome Assigned", "Read Count"))'
 }
