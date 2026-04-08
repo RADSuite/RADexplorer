@@ -79,7 +79,7 @@ After the explorer loads, you can then select the  v-regions you want to explore
 
 ### 3. Interpret the visualization
 
-The main plot shows each selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. Within each v-region column, tiles that share a color have identical signatures.
+The main plot shows the selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. Within each v-region column, tiles that share a color have identical signatures.
 
 - **A gold highlight** on a column marks the currently selected variable regions
 - **A green checkmark** next to a species means it can be uniquely identified using the selected variable regions
