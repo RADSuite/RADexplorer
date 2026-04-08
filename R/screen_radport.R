@@ -21,6 +21,7 @@ radport_screen_ui <- function() {
                                                code_block("code2a", CODE_2A())),
                                 htmltools::div(id = "opt2", class = "opt-panel",
                                                htmltools::p(class = "opt-note", "Click Download to fetch the partial RADlib. To save it somewhere other than your working directory, enter a path first."),
+                                               htmltools::p(class = "opt-note", "If using test data, make sure to select these taxa on the main menu: Leptotrichia wadei, Capnocytophaga ochracea DSM 7271."),
                                                shiny::div(style = "display:flex; gap:12px; align-items:flex-end;",
                                                           shiny::textInput("filepath", label = NULL, value = ""),
                                                           shiny::actionButton("inputFilepath", "Download", style = "height:34px; padding:0 12px; margin-bottom:17px;")),
@@ -186,13 +187,13 @@ accession_all <- aln[[1]]$rname'
 }
 
 CODE_8A <- function() {
-  'genome_name_all <- get_species_list(accession_all) # RADalign function
+  'genome_name_all <- RADalign::get_organisms_name(accession_all) # RADalign function
 read_count_table <- sort(table(genome_name_all), decreasing = TRUE)
 knitr::kable(read_count_table[1:10], col.names = c("Genome Assigned", "Read Count"))'
 }
 
 CODE_8B <- function() {
-  'taxa_id_all <- get_taxa_ids(accession_all) # RADalign function
+  'taxa_id_all <- RADalign::get_taxa_ids(accession_all) # RADalign function
 read_count_table <- sort(table(taxa_id_all), decreasing = TRUE)
 knitr::kable(read_count_table[1:10], col.names = c("Genome Assigned", "Read Count"))'
 }
