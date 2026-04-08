@@ -72,14 +72,14 @@ When the app opens you will see the RADx menu. Use the species picker to search 
 
 ### 2. Choose your variable regions
 
-After the explorer loads, you can then select the variable regions you want to explore in the sidebar. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
+After the explorer loads, you can then select the  v-regions you want to explore in the sidebar. By default V4 is selected, since it is the most commonly sequenced region, but you can select any combination of V1 through V9.
 
 <img width="276" height="264" alt="vregions" src="https://github.com/user-attachments/assets/dc0e2100-8efa-4961-b84c-6186c22e1921" />
 
 
 ### 3. Interpret the visualization
 
-The main plot shows each selected species on the y axis and the variable regions on the x axis. Each tile represents a 16S rRNA gene copy for that species in that region. Tile colors designate identical sequences within a v-region.
+The main plot shows each selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. Within each v-region column, tiles that share a color have identical signatures.
 
 - **A gold highlight** on a column marks the currently selected variable regions
 - **A green checkmark** next to a species means it can be uniquely identified using the selected variable regions
