@@ -9,7 +9,7 @@ An interactive RShiny app for exploring the variation across 16S rRNA gene copie
 Bacterial species carry multiple copies of the 16S rRNA gene (~5 on average, up to 15+), and those copies are often not identical. 
 When planning an amplicon sequencing experiment, the variable region (v-region) you choose to sequence determines whether you can actually distinguish the species you care about from closely related taxa.
 
-RADx (**R**egional **A**lignment **D**atabase explorer) lets you select any set of species and immediately visualize how their 16S rRNA gene copies differ across all nine variable regions. 
+RADx (**R**egional **A**lignment **D**atabase explorer) lets you select any set of species and immediately visualize how their 16S rRNA gene copies differ across all nine v-regions. 
 You can easily see which v-regions (V1-V9) produce unique sequences for your target taxa, which ones leave species indistinguishable from one another, and whether a single region is enough for your experimental needs.
 
 This matters more than most researchers expect. The most commonly used v-regions in amplicon sequencing, V3 and V4, are frequently insufficient to differentiate between closely related organisms within the same genus or species group.
