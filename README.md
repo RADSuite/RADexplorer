@@ -79,14 +79,14 @@ After the explorer loads, you can then select the  v-regions you want to explore
 
 ### 3. Interpret the visualization
 
-The main plot shows the selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. Within each v-region column, tiles that share a color have identical signatures.
+The main plot shows the selected species on the y axis and the v-regions on the x axis. In the default **summarized** view, all gene copy sequences within a v-region are merged into one combined 'signature'. A unique signature in a v-region means the organism can be identified by sequencing that region along. Signatures are represented by tile color. 
 
 - **A gold highlight** on a column marks the currently selected variable regions
 - **A green checkmark** next to a species means it can be uniquely identified using the selected variable regions
 - **A red bracket** groups species that cannot be distinguished from one another with the selected regions
 
 <img width="1145" height="643" alt="RADx" src="https://github.com/user-attachments/assets/b2b3f0fd-9112-4fc0-87b8-de91f3ed0eaa" />
-
+Note: Colors designate identical signatures within a v-region. Colors should not be compared across columns.
 
 ### 4. Detailed view
 
@@ -94,7 +94,7 @@ Toggle **Detailed View** in the sidebar to switch from a summary view to a copy-
 In general, the summary view is best for interspecies comparison and v-region selection, while the detailed view is best for studying intraspecies copy variation within a taxon.
 
 <img width="1101" height="604" alt="RADxDetailed" src="https://github.com/user-attachments/assets/ac385cc9-b62b-4aa3-acc4-2490e8c606f8" />
-
+Note: Colors designate identical sequences within a v-region. Colors should not be compared across columns.
 
 ### 5. V-Region labels
 
